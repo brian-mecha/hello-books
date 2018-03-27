@@ -1,0 +1,4 @@
+# Everything needed in development environment
+
+-r prod.txt
+pip install -r requirements/dev.txt

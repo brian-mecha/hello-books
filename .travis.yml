@@ -1,0 +1,8 @@
+language: python
+
+python:
+    - 3.5.2
+
+# install dependencies for development environment
+install:
+  -pip install -r requirements/dev.txt
