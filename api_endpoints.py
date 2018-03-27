@@ -1,13 +1,36 @@
 from flask import Flask, abort, jsonify, make_response, request
+from marshmallow import ValidationError
+from flask_bcrypt import Bcrypt
 
 from flask.views import MethodView
+from dataSchema import UserSchema
+from flask_jwt_extended import (JWTManager, jwt_required, create_access_token, get_jwt_identity, get_raw_jwt)
 
 import os
 
 ##initialization
+#path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "hello-books/instance")
+
+#app.config.from_pyfile('config.py')
 app = Flask(__name__)
+app.config['SECRET_KEY']='\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
+app.config['BCRYPT_LOG_ROUNDS'] = 15
+app.config['JWT_SECRET_KEY']='\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
+app.config['JWT_BLACKLIST_ENABLED']= True
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access']
+
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 
 books = [{"id": 1, "title": "Kamusi Ya Methali", "description": "This is A very Nice Book", "Author": "Brian Mecha"}]
+users_data = []
+
+blacklist = set()
+
+@jwt.token_in_blacklist_loader
+def check_if_token_in_blacklist(decrypted_token):
+    jti = decrypted_token['jti']
+    return jti in blacklist
 
 
 ###singleBook Api
@@ -78,6 +101,95 @@ class BooksApi(MethodView):
     def put(self):
         pass
 
+# Auth APIs
+class LoginUser(MethodView):
+    def get(self):
+        pass
+
+    def post(self):
+        user = request.get_json()
+        try:
+            valid_user = UserSchema().load(user)
+            users_email = [user for user in users_data if user["email"] == valid_user.data["email"]]
+
+            if len(users_email) < 1:
+                abort(401, "Wrong User Name or Password")
+            else:
+                print (users_email)
+                if check_password( users_email[0]["email"],valid_user.data["email"]):
+                    access_token = create_access_token(identity=user["name"])
+
+                    return user, 200, {"jwt": access_token}
+
+                else:
+                    abort(401, "Wrong User Name or Password")
+
+
+
+        except ValidationError as err:
+            abort(400, err.messages)
+
+
+
+class LogoutUser(MethodView):
+    @jwt_required
+    def post(self):
+        jti = get_raw_jwt()['jti']
+        blacklist.add(jti)
+        return jsonify({"msg": "Successfully logged out"}), 200
+
+
+class RegisterUser(MethodView):
+    def post(self):
+        userdata = request.get_json()
+        try:
+            # Test if data sent is valid and has all required  fields
+            valid_user = UserSchema().load(userdata)
+
+            users_email = [user for user in users_data if user["email"] == valid_user.data["email"]]
+
+            if len(users_email) != 0:
+                abort(401, "User With Such An Email Already Exist")
+
+            else:
+                userdata["password"]=set_password(userdata["password"])
+                users_data.append(userdata)
+                access_token = create_access_token(identity=userdata["name"])
+
+                return jsonify(userdata), 200, {"jwt": access_token}
+
+
+
+
+
+        except ValidationError as err:
+            abort(401, err.messages)
+
+
+class ResetPassword(MethodView):
+    def post(self):
+        pass
+
+
+@jwt.expired_token_loader
+def my_expired_token_callback():
+    jwt_data = get_jwt_identity()
+    access = create_access_token(identity=jwt_data)
+    return jsonify(access), 200
+
+
+def set_password(password):
+    password = bcrypt.generate_password_hash(password.encode('utf-8')).decode("utf-8")
+    return password
+
+
+def check_password(hashed_password, password):
+    return bcrypt.check_password_hash(hashed_password, password)
+
 
 app.add_url_rule('/api/v1/books/<int:id>', view_func=SingleBooksApi.as_view('singlebook'))
 app.add_url_rule('/api/v1/books', view_func=BooksApi.as_view('book'))
+app.add_url_rule("/api/v1/auth/login", view_func=LoginUser.as_view('login'))
+app.add_url_rule("/api/v1/auth/register", view_func=RegisterUser.as_view('register'))
+app.add_url_rule("/api/v1/auth/logout", view_func=LogoutUser.as_view('logout'))
+
