@@ -1,0 +1,7 @@
+[
+  "api_test.py::TestIntegrations::test_registration_duplicate_email",
+  "api_test.py::TestIntegrations::test_user_registration",
+  "api_test.py::BookCreation::test_add_book",
+  "api_test.py::BookCreation::test_api_exists",
+  "api_test.py::BookCreation::test_books"
+]

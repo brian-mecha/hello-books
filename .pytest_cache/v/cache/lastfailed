@@ -1,0 +1,7 @@
+{
+  "api_test.py::BookCreation::test_add_book": true,
+  "api_test.py::BookCreation::test_api_exists": true,
+  "api_test.py::BookCreation::test_books": true,
+  "api_test.py::TestIntegrations::test_registration_duplicate_email": true,
+  "api_test.py::TestIntegrations::test_user_registration": true
+}
