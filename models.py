@@ -76,7 +76,6 @@ class User(object):
 
 
 class Book(object):
-    @property
     def __init__(self, title, description, author):
         """
         Class Initializes a Book instance with following parameters:
@@ -93,6 +92,17 @@ class Book(object):
         # self.book['description'] = description
         # self.book['author'] = author
 
+    @property
+    def serialize(self):
+        """Serialize."""
+        return {
+            # 'book_id': self.book_id,
+            'title': self.title,
+            'author': self.author,
+            'description': self.description
+        }
+
+
     def createBook(self):
         """
         Functions assigns the book object an id and appends it to the book list
@@ -101,7 +111,8 @@ class Book(object):
 
         if len(books) == 0:
             book = {}
-            book[self.id] = self
+            # book[self.id] = self
+            book[self.id] = len(books) + 1
             books.append(book)
 
             # self.title = title
@@ -125,23 +136,22 @@ class Book(object):
                     books.append(book)
 
                     return {'Success': 'Book Created Successfully'}
-
-    def apicreatebook( data):
+    @property
+    def apicreatebook(self, data):
         """
         :param data:
         :return:
         """
 
         for book in books:
-
             if id in book.keys():
 
                 return {'Error': 'Book Already Exists'}
 
             else:
 
-                new_book = {str(id): data}
-                books.append(new_book)
+                new_book = {int(id): data}
+                books.append(data)
 
                 return {'Success': 'Book Created Successfully'}
 

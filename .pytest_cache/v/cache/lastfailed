@@ -4,6 +4,7 @@
   "api_test.py::BookCreation::test_books": true,
   "api_test.py::TestBookAPI::test_delete_method_for_delete_a_book_api": true,
   "api_test.py::TestBookAPI::test_get_method_for_get_a_book_api": true,
+  "api_test.py::TestIntegrations::test_registration_duplicate_": true,
   "api_test.py::TestIntegrations::test_registration_duplicate_email": true,
   "api_test.py::TestIntegrations::test_registration_duplicate_username": true,
   "api_test.py::TestIntegrations::test_user_registration": true,

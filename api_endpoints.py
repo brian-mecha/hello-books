@@ -22,9 +22,9 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access']
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-books = [
-    {"id": 1, "title": "Kamusi Ya Methali", "description": "This is A very Nice Book", "Author": "Brian Mecha"}
-]
+# books = [
+#     {"id": 1, "title": "Kamusi Ya Methali", "description": "This is A very Nice Book", "Author": "Brian Mecha"}
+# ]
 # book1 = Book("Kamusi ya Vitendawili", 'This is A very Nice Book', 'Brian').createBooks
 # book2 = Book('Git essentials', 'This is A very Nice Book', 'Mecha').createBook()
 
@@ -49,7 +49,7 @@ class SingleBooksApi(MethodView):
     """Method to find, get, delete and edit a book"""
     def get(self, id):
         """Function to find a single book"""
-        return jsonify(Book.getBook(id=id))
+        return jsonify(Book.getBook(id))
 
     def delete(self, id):
         """Function to delete a book"""
@@ -65,14 +65,16 @@ class BooksApi(MethodView):
     def get(self):
         """Function to get all books"""
         # return jsonify(Book.get_all_books(self))
-        return json.dumps(Book.get_all_books(self))
+        return jsonify(books)
 
     def post(self):
         """Function to add a book"""
         data = request.get_json(self)
         valid_book = BookSchema().load(data)
 
-        return json.dumps(Book.apicreatebook(data=valid_book))
+        books.append(valid_book)
+
+        return jsonify({'Message': 'Book added successfully.'})
 
 class LoginUser(MethodView):
     """Method to login user"""
@@ -89,7 +91,7 @@ class LoginUser(MethodView):
                 if check_password(users_username[0]["email"], valid_user.data["email"]):
                     access_token = create_access_token(identity=user["email"])
 
-                    return user, 200, {"jwt": access_token}
+                    return jsonify({'Message': 'Login successfully.'}), 200, {"jwt": access_token}
 
                 else:
                     abort(401, "Wrong User Name or Password")
@@ -123,10 +125,12 @@ class RegisterUser(MethodView):
             else:
                 userdata["password"] = set_password(userdata["password"])
 
+                users_data.append(valid_user)
                 access_token = create_access_token(identity=userdata["username"])
                 hashed_password = set_password(userdata['password'])
 
-                return jsonify(User(id=userdata['id'], username=userdata['username'], password=hashed_password).CreateUser()), 200, {"jwt": access_token}
+                # return jsonify(User(id=valid_user['id'], username=valid_user['username'], password=hashed_password).CreateUser()), 200, {"jwt": access_token}
+                return jsonify({"Success": "User registered successfully"}), 200, {"jwt": access_token}
 
         except ValidationError as err:
             abort(401, err.messages)
