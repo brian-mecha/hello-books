@@ -22,12 +22,6 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access']
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-# books = [
-#     {"id": 1, "title": "Kamusi Ya Methali", "description": "This is A very Nice Book", "Author": "Brian Mecha"}
-# ]
-# book1 = Book("Kamusi ya Vitendawili", 'This is A very Nice Book', 'Brian').createBooks
-# book2 = Book('Git essentials', 'This is A very Nice Book', 'Mecha').createBook()
-
 user1 = User(1, 'brian', 'brian_mecha').CreateUser()
 user2 = User(2, 'mecha', 'mecha_brian').CreateUser()
 users_data = []
@@ -64,7 +58,6 @@ class BooksApi(MethodView):
     """Method to get all books and add a book"""
     def get(self):
         """Function to get all books"""
-        # return jsonify(Book.get_all_books(self))
         return jsonify(books)
 
     def post(self):
@@ -114,7 +107,6 @@ class RegisterUser(MethodView):
         """Registers a new user"""
         userdata = request.get_json()
         try:
-            #: Test if data sent is valid and has all required  fields
             valid_user = UserSchema().load(userdata)
 
             users_username = [user for user in users_data if user["username"] == valid_user.data["username"]]
@@ -129,7 +121,6 @@ class RegisterUser(MethodView):
                 access_token = create_access_token(identity=userdata["username"])
                 hashed_password = set_password(userdata['password'])
 
-                # return jsonify(User(id=valid_user['id'], username=valid_user['username'], password=hashed_password).CreateUser()), 200, {"jwt": access_token}
                 return jsonify({"Success": "User registered successfully"}), 200, {"jwt": access_token}
 
         except ValidationError as err:
@@ -142,10 +133,8 @@ class ResetPassword(MethodView):
         """Function to reset password"""
         userdata = request.get_json()
         try:
-            #: Test if data sent is valid and has all required  fields
             valid_user = UserSchema().load(userdata)
 
-            #: test if user trying to change password is the Authonicated user by checking identity in his token
             if get_jwt_identity() == valid_user.data["email"]:
                 users_email = [user for user in users_data if user["email"] == valid_user.data["email"]]
                 if len(users_email) == 0:
