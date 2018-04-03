@@ -1,16 +1,6 @@
 {
-  "api_test.py::BookCreation::test_add_book": true,
-  "api_test.py::BookCreation::test_api_exists": true,
-  "api_test.py::BookCreation::test_books": true,
-  "api_test.py::TestBookAPI::test_delete_method_for_delete_a_book_api": true,
-  "api_test.py::TestBookAPI::test_get_method_for_get_a_book_api": true,
-  "api_test.py::TestIntegrations::test_registration_duplicate_": true,
-  "api_test.py::TestIntegrations::test_registration_duplicate_email": true,
-  "api_test.py::TestIntegrations::test_registration_duplicate_username": true,
-  "api_test.py::TestIntegrations::test_user_registration": true,
-  "api_test.py::TestUserAPI::test_borrow_book_api_endpoint": true,
-  "api_test.py::TestUserAPI::test_get_all_user_api_exits": true,
-  "api_test.py::TestUserAPI::test_update_password_exists": true,
-  "api_test.py::TestUserAPI::test_user_login_api_exists": true,
-  "api_test.py::TestUserAPI::test_user_registration_api_exists": true
+  "tests/test_apis.py::BookCreation::test_add_book": true,
+  "tests/test_apis.py::TestIntegrations::test_registration_duplicate": true,
+  "tests/test_apis.py::TestIntegrations::test_registration_duplicate_": true,
+  "tests/test_apis.py::TestIntegrations::test_user_registration": true
 }

@@ -2,28 +2,20 @@
 from flask import Flask, abort, jsonify, request
 from marshmallow import ValidationError
 from flask_bcrypt import Bcrypt
-import json
+from api.models import *
+from api import app
 
 from flask.views import MethodView
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token, get_jwt_identity, get_raw_jwt
     )
-from dataSchema import UserSchema
-from dataSchema import BookSchema
-from models import *
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = '\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
-app.config['BCRYPT_LOG_ROUNDS'] = 15
-app.config['JWT_SECRET_KEY'] = '\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
-app.config['JWT_BLACKLIST_ENABLED'] = True
-app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access']
+from api.dataSchema import UserSchema
+from api.dataSchema import BookSchema
+from api.models import User, Book
 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-user1 = User(1, 'brian', 'brian_mecha').CreateUser()
-user2 = User(2, 'mecha', 'mecha_brian').CreateUser()
 users_data = []
 borrowed_books = []
 
@@ -49,16 +41,27 @@ class SingleBooksApi(MethodView):
         """Function to delete a book"""
         return jsonify(Book.deleteBook(id=id))
 
-    def put(self, id):
+    def put(self, book_id):
         """Function to update a book"""
         data = request.get_json(self)
-        return jsonify(Book.updateBook(id=id, data=data))
+        if len(data) == 0:
+            response = jsonify({"Message": "No Book Update Infomation Passed"})
+            response.status_code = 400
+            return response
+
+        response = jsonify(Book.updateBook(id=book_id, data=data))
+        response.status_code = 200
+        return response
 
 class BooksApi(MethodView):
     """Method to get all books and add a book"""
     def get(self):
         """Function to get all books"""
-        return jsonify(books)
+        res = jsonify(Book.get_all_books(self))
+        print(">>>>>>   ", res)
+        res.status_code = 200
+
+        return res
 
     def post(self):
         """Function to add a book"""
@@ -105,26 +108,38 @@ class RegisterUser(MethodView):
     """Method to register a new user"""
     def post(self):
         """Registers a new user"""
-        userdata = request.get_json()
-        try:
-            valid_user = UserSchema().load(userdata)
+        data = request.get_json(self)
 
-            users_username = [user for user in users_data if user["username"] == valid_user.data["username"]]
+        if len(data) == 0:
+            res = jsonify({'Message': 'No User Data Passed'})
+            res.status_code = 400
+            return res
 
-            if len(users_username) != 0:
-                abort(401, "Username Already Exists")
+        hashed_password = set_password(data['password'])
+        res = jsonify(User(username=data['username'], user_id=self, password=hashed_password).CreateUser())
+        res.status_code = 201
+        return res
 
-            else:
-                userdata["password"] = set_password(userdata["password"])
-
-                users_data.append(valid_user)
-                access_token = create_access_token(identity=userdata["username"])
-                hashed_password = set_password(userdata['password'])
-
-                return jsonify({"Success": "User registered successfully"}), 200, {"jwt": access_token}
-
-        except ValidationError as err:
-            abort(401, err.messages)
+        # userdata = request.get_json()
+        # try:
+        #     valid_user = UserSchema().load(userdata)
+        #
+        #     users_username = [user for user in users_data if user["username"] == valid_user.data["username"]]
+        #
+        #     if len(users_username) != 0:
+        #         abort(401, "Username Already Exists")
+        #
+        #     else:
+        #         valid_user["password"] = set_password(valid_user["password"])
+        #
+        #         users_data.append(valid_user)
+        #         access_token = create_access_token(identity=valid_user["username"])
+        #         hashed_password = set_password(valid_user['password'])
+        #
+        #         return jsonify({"Success": "User registered successfully"}), 200, {"jwt": access_token}
+        #
+        # except ValidationError as err:
+        #     abort(401, err.messages)
 
 class ResetPassword(MethodView):
     """Method to reset a password"""
@@ -135,17 +150,18 @@ class ResetPassword(MethodView):
         try:
             valid_user = UserSchema().load(userdata)
 
-            if get_jwt_identity() == valid_user.data["email"]:
-                users_email = [user for user in users_data if user["email"] == valid_user.data["email"]]
-                if len(users_email) == 0:
+            if get_jwt_identity() == valid_user.data["username"]:
+                users_surname = [user for user in users_data if user["surname"] == valid_user.data["surname"]]
+                if len(users_surname) == 0:
                     abort(401, "User Does Not Exist")
 
                 else:
-                    users_data.remove(users_email[0])
+                    users_data.remove(users_surname[0])
                     valid_user.data["password"] = set_password(userdata["password"])
 
+                    # User.resetPassword(id=valid_user.data["id"], password=valid_user["password"], username=valid_user["surname"])
                     users_data.append(valid_user.data)
-                    access_token = create_access_token(identity=userdata["email"])
+                    access_token = create_access_token(identity=userdata["username"])
 
                     return jsonify(valid_user.data), 200, {"jwt": access_token}
 
@@ -185,11 +201,3 @@ def check_password(hashed_password, password):
     """Check if password is hashed"""
     return bcrypt.check_password_hash(hashed_password, password)
 
-
-app.add_url_rule('/api/v1/books/<int:id>', view_func=SingleBooksApi.as_view('singlebook'))
-app.add_url_rule('/api/v1/books', view_func=BooksApi.as_view('book'))
-app.add_url_rule("/api/v1/auth/login", view_func=LoginUser.as_view('login'))
-app.add_url_rule("/api/v1/auth/register", view_func=RegisterUser.as_view('register'))
-app.add_url_rule("/api/v1/auth/logout", view_func=LogoutUser.as_view('logout'))
-app.add_url_rule("/api/v1/auth/reset", view_func=ResetPassword.as_view('reset'))
-app.add_url_rule("/api/v1/users/book/<int:book_id>", view_func=BorrowBook.as_view('borrow'))

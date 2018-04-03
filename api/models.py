@@ -1,40 +1,37 @@
 """
 Contains entities that model data in our apps.
 """
-from flask import jsonify
 
 books = []
 users = []
 
 class User(object):
-    def __init__(self, id, username, password):
-        self.user = {}
-        self.user['id'] = id
-        self.user['username'] = username
-        self.user['password'] = password
-        self.users = []
+    def __init__(self, user_id, username, password):
+        self.user_id = user_id
+        self.username = username
+        self.password = password
 
     def CreateUser(self):
         """Model to create a user"""
         if len(users) == 0:
-            users.append(self.user)
+            users.append(self)
             return {'Message': 'User Created Successfully'}
 
         for user in users:
 
-            if user['id'] == self.user['id']:
+            if user.user_id == self.user_id:
 
-                return {'Message': 'This user id already exists'}
+                return {'Message': 'This user already exists'}
 
             else:
 
-                if user['username'] == self.user['username']:
+                if user.username == self.username:
 
-                    return {'Message': 'This username already exists'}
+                    return {'Message': 'This username is already taken'}
 
                 else:
 
-                    users.append(self.user)
+                    users.append(self)
 
                     return {'Message': 'User created Successfully'}
 
@@ -74,6 +71,13 @@ class User(object):
 
                 return {'Message': 'Book Does Not Exist'}
 
+    @property
+    def serialize(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "password": self.password
+        }
 
 class Book(object):
     def __init__(self, title, description, author):
@@ -83,20 +87,15 @@ class Book(object):
         :param author: Book Author
         """
 
-        # self.book = {}
         self.id = len(books) + 1
         self.title = title
         self.description = description
         self.author = author
-        # self.book['title'] = title
-        # self.book['description'] = description
-        # self.book['author'] = author
 
     @property
     def serialize(self):
         """Serialize."""
         return {
-            # 'book_id': self.book_id,
             'title': self.title,
             'author': self.author,
             'description': self.description
@@ -110,14 +109,10 @@ class Book(object):
         """
 
         if len(books) == 0:
-            book = {}
+            # book = {}
             # book[self.id] = self
-            book[self.id] = len(books) + 1
-            books.append(book)
-
-            # self.title = title
-            # self.description = description
-            # self.author = author
+            self.id = len(books) + 1
+            books.append(object)
 
             return {'Success': 'Book Created Successfully'}
 
@@ -131,7 +126,6 @@ class Book(object):
 
                 else:
 
-                    book = {}
                     book[int(self.id)] = self
                     books.append(book)
 
@@ -150,7 +144,6 @@ class Book(object):
 
             else:
 
-                new_book = {int(id): data}
                 books.append(data)
 
                 return {'Success': 'Book Created Successfully'}
@@ -169,7 +162,7 @@ class Book(object):
 
         for book in books:
 
-            if id in book.keys():
+            if book['id'] == id:
 
                 books.remove(book)
 
@@ -179,23 +172,22 @@ class Book(object):
 
                 return {'Error': 'Book Does Not Exist'}
 
-    def updateBook(id, data):
+    def updateBook(self, id, data):
         """
         :param data:
         :return:
         """
-
         for book in books:
 
-            if id in book.keys():
+            if book['id'] == id:
+                book['title'] = data['title']
+                book['author'] = data['author']
+                book['description'] = data['description']
 
-                book[id] = data
+                return {'Message': 'Book Update Successful'}
 
-                return {'Success': 'Book Update Successful'}
+        return {'Error': 'Book Does Not Exist'}
 
-            else:
-
-                return {'Error': 'Book Does Not Exist'}
 
     def getBook(id):
         """
@@ -204,25 +196,10 @@ class Book(object):
 
         for book in books:
 
-            if id in book.keys():
+            if book['id'] == id:
 
                 return book
 
             else:
 
                 return {'Error': 'Book Does not Exist'}
-
-
-def main():
-    # book = Book('Kamusi ya Methli', 'Brian').createBook()
-    # book = Book('Git essentials', 'Mecha').createBook()
-    # print(books)
-    #
-    # user = User(1, 'brian', 'brian_mecha').CreateUser()
-    # user = User(2, 'mecha', 'mecha_brian').CreateUser()
-    #
-    # print(users)
-
-
-# if __name__ == '__main__':
-    main()

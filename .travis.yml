@@ -6,7 +6,10 @@ python:
 # install dependencies for development environment
 install:
     - pip install -r requirements.txt
+    - pip install coveralls
 
 script:
     - pytest
+
+after_success: coveralls
 

@@ -1,7 +1,7 @@
 [
-  "api_test.py::TestIntegrations::test_registration_duplicate_",
-  "api_test.py::TestIntegrations::test_user_registration",
-  "api_test.py::BookCreation::test_add_book",
-  "api_test.py::BookCreation::test_api_exists",
-  "api_test.py::BookCreation::test_books"
+  "tests/test_apis.py::TestIntegrations::test_registration_duplicate",
+  "tests/test_apis.py::TestIntegrations::test_user_registration",
+  "tests/test_apis.py::BookCreation::test_add_book",
+  "tests/test_apis.py::BookCreation::test_api_exists",
+  "tests/test_apis.py::BookCreation::test_books"
 ]
