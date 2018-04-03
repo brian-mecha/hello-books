@@ -84,8 +84,8 @@ class LoginUser(MethodView):
             if len(users_username) < 1:
                 abort(401, "Wrong User Name or Password")
             else:
-                if check_password(users_username[0]["email"], valid_user.data["email"]):
-                    access_token = create_access_token(identity=user["email"])
+                if check_password(users_username[0]["username"], valid_user.data["username"]):
+                    access_token = create_access_token(identity=user["username"])
 
                     return jsonify({'Message': 'Login successfully.'}), 200, {"jwt": access_token}
 
@@ -116,30 +116,12 @@ class RegisterUser(MethodView):
             return res
 
         hashed_password = set_password(data['password'])
-        res = jsonify(User(username=data['username'], user_id=self, password=hashed_password).CreateUser())
-        res.status_code = 201
-        return res
+        access_token = create_access_token(identity=data["username"])
 
-        # userdata = request.get_json()
-        # try:
-        #     valid_user = UserSchema().load(userdata)
-        #
-        #     users_username = [user for user in users_data if user["username"] == valid_user.data["username"]]
-        #
-        #     if len(users_username) != 0:
-        #         abort(401, "Username Already Exists")
-        #
-        #     else:
-        #         valid_user["password"] = set_password(valid_user["password"])
-        #
-        #         users_data.append(valid_user)
-        #         access_token = create_access_token(identity=valid_user["username"])
-        #         hashed_password = set_password(valid_user['password'])
-        #
-        #         return jsonify({"Success": "User registered successfully"}), 200, {"jwt": access_token}
-        #
-        # except ValidationError as err:
-        #     abort(401, err.messages)
+        response = jsonify(User(username=data['username'], user_id=self, password=hashed_password, admin=data).CreateUser())
+        response.status_code = 201
+        response.token = access_token
+        return response
 
 class ResetPassword(MethodView):
     """Method to reset a password"""

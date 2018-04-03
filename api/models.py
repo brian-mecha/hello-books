@@ -6,10 +6,11 @@ books = []
 users = []
 
 class User(object):
-    def __init__(self, user_id, username, password):
+    def __init__(self, user_id, username, password, admin):
         self.user_id = user_id
         self.username = username
         self.password = password
+        self.admin = admin
 
     def CreateUser(self):
         """Model to create a user"""
@@ -20,20 +21,15 @@ class User(object):
         for user in users:
 
             if user.user_id == self.user_id:
+                return {'Error': 'This user already exists'}
 
-                return {'Message': 'This user already exists'}
+            elif user.username == self.username:
+                return {'Error': 'This username is already taken'}
 
             else:
+                users.append(self)
 
-                if user.username == self.username:
-
-                    return {'Message': 'This username is already taken'}
-
-                else:
-
-                    users.append(self)
-
-                    return {'Message': 'User created Successfully'}
+                return {'Message': 'User created Successfully'}
 
     def AllUsers(self):
         """Function to get all users"""
@@ -65,7 +61,7 @@ class User(object):
 
             if book_id in book.keys():
 
-                return {'Message': 'Successfully Borrowed Book'}
+                return {'Success': 'Successfully Borrowed Book'}
 
             else:
 
