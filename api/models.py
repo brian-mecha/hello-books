@@ -123,26 +123,26 @@ class Book(object):
 
                 return {'Success': 'Book Created Successfully'}
 
-    @property
-    def apicreatebook(self, data):
-        """
-        :param data:
-        :return:
-        """
-
-        for book in books:
-            if book.book_id in book.keys():
-                return {'Error': 'Book Already Exists'}
-
-            elif book.title in book.keys():
-                return {'Error': 'Book Already Exists'}
-
-            else:
-
-                data.book_id = len(books) + 1
-                books.append(data)
-
-                return {'Success': 'Book Created Successfully'}
+    # @property
+    # def apicreatebook(self, data):
+    #     """
+    #     :param data:
+    #     :return:
+    #     """
+    #
+    #     for book in books:
+    #         if book.book_id in book.keys():
+    #             return {'Error': 'Book Already Exists'}
+    #
+    #         elif book.title in book.keys():
+    #             return {'Error': 'Book Already Exists'}
+    #
+    #         else:
+    #
+    #             data.book_id = len(books) + 1
+    #             books.append(data)
+    #
+    #             return {'Success': 'Book Created Successfully'}
 
     @staticmethod
     def get_all_books():
@@ -158,7 +158,6 @@ class Book(object):
         :return:
         """
         for book in books:
-            print("><><>> ", book)
             if book.book_id == book_id:
 
                 books.remove(book)
@@ -169,7 +168,8 @@ class Book(object):
 
                 return {'Error': 'Book Does Not Exist'}
 
-    def updateBook(self, book_id, data):
+    @staticmethod
+    def updateBook(book_id, data):
         """
         :param data:
         :return:
@@ -185,7 +185,7 @@ class Book(object):
 
         return {'Error': 'Book Does Not Exist'}
 
-
+    @staticmethod
     def getBook(book_id):
         """
         :return:

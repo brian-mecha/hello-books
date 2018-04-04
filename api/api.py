@@ -1,14 +1,15 @@
 """Declares all enpoints used in Hello Books project"""
-from flask import Flask, abort, jsonify, request
+from flask import abort, jsonify, request
 from marshmallow import ValidationError
 from flask_bcrypt import Bcrypt
-from api.models import *
-from api import app
-
 from flask.views import MethodView
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token, get_jwt_identity, get_raw_jwt
     )
+
+from api.models import *
+from api import app
+
 from api.dataSchema import UserSchema
 from api.dataSchema import BookSchema
 from api.models import User, Book
@@ -34,26 +35,46 @@ def check_if_token_in_blacklist(decrypted_token):
 class SingleBooksApi(MethodView):
     """Method to find, get, delete and edit a book"""
     def get(self, book_id):
-        """Function to find a single book"""
-        return jsonify(Book.getBook(book_id))
+        """
+        Function to find a single book
+        :param book_id:
+        :return: thisBook
+        """
+
+        thisbook = []
+        data = Book.getBook(book_id)
+
+        if not data:
+
+            return {'Error': 'Book Does not Exist'}, 404
+
+        else:
+
+            thisbook.append(data.serialize())
+            response = jsonify(thisbook)
+            response.status_code = 200
+
+        return response
 
     def delete(self, book_id):
         """Function to delete a book"""
-        # response = Book.deleteBook(self, book_id)
-        # return jsonify(response)
-        print("><>><><>   >>>", book_id)
-        if Book.deleteBook(book_id) == {'Message': 'Book Deleted Successfully'}:
-            res = jsonify(Book.deleteBook(book_id=book_id))
-            res.status_code = 200
-            return res
+        data = Book.getBook(book_id)
+
+        if not data:
+            return {'Error': 'Book Does not Exist'}
 
         res = jsonify(Book.deleteBook(book_id))
-        res.status_code = 404
+        res.status_code = 200
         return res
 
     def put(self, book_id):
-        """Function to update a book"""
+        """
+        Function to update a book
+        :param book_id:
+        :return:
+        """
         data = request.get_json(self)
+
         if len(data) == 0:
             response = jsonify({"Message": "No Book Update Infomation Passed"})
             response.status_code = 400
@@ -66,7 +87,10 @@ class SingleBooksApi(MethodView):
 class BooksApi(MethodView):
     """Method to get all books and add a book"""
     def get(self):
-        """Function to get all books"""
+        """
+        Function to get all books
+        :return:
+        """
 
         # create a empty list for all books
         # assign get all books to var
@@ -74,35 +98,51 @@ class BooksApi(MethodView):
         #append each book to all_books
         # jsonify all  books
 
-        allBooks = []
+        allbooks = []
         data = Book.get_all_books()
         for book in data:
-            print("><><<><><>>>>>>>>>   ", book)
-            allBooks.append(book.serialize())
+            allbooks.append(book.serialize())
 
-        # return jsonify(allBooks)
-
-        response = jsonify(allBooks)
+        response = jsonify(allbooks)
         response.status_code = 200
 
         return response
 
-
-        # res = jsonify(Book.get_all_books())
-        # res.status_code = 200
-        #
-        # return res
-
     def post(self):
-        """Function to add a book"""
+        """
+        Function to add a book
+        :return:
+        """
         data = request.get_json(self)
         valid_book = BookSchema().load(data)
-        print("><><><???????  ", valid_book.data)
 
-        new_book = Book(title=valid_book.data["title"], description=valid_book.data["description"], author=valid_book.data["author"])
-        new_book.createBook()
+        if not valid_book.data["title"]:
+            return {'Error': 'Book must have a Title'}, 403
 
-        return jsonify({'Message': 'Book added successfully.'})
+        elif valid_book.data["title"].isspace():
+            return {'Error': 'Book must have a Title'}
+
+        elif valid_book.data["description"].isspace():
+            return {'Error': 'Book must have a Description'}
+
+        elif not valid_book.data["description"]:
+            return {'Error': 'Book must have a Description'}
+
+        elif not valid_book.data["author"]:
+            return {'Error': 'Book must have an Author'}
+
+        elif valid_book.data["author"].isspace():
+            return {'Error': 'Book must have a Author'}
+
+        else:
+
+            new_book = Book(title=valid_book.data["title"],
+                            description=valid_book.data["description"],
+                            author=valid_book.data["author"])
+
+            new_book.createBook()
+
+        return jsonify({'Success': 'Book added successfully.'})
 
 class LoginUser(MethodView):
     """Method to login user"""
@@ -131,7 +171,10 @@ class LogoutUser(MethodView):
     """Method to logout user"""
     @jwt_required
     def post(self):
-        """Function to logout user"""
+        """
+        Function to logout user
+        :return:
+        """
         jti = get_raw_jwt()['jti']
         blacklist.add(jti)
         return jsonify({"msg": "Successfully logged out"}), 200
@@ -143,9 +186,19 @@ class RegisterUser(MethodView):
         data = request.get_json(self)
 
         if len(data) == 0:
-            res = jsonify({'Message': 'No User Data Passed'})
-            res.status_code = 400
-            return res
+            return {'Message': 'No User Data Passed'}, 403
+
+        if not data['username']:
+            return {'Message': 'Username Not Provided'}, 403
+
+        if data['username'].isspace():
+            return {'Message': 'Username Not Provided'}, 403
+
+        if not data['password']:
+            return {'Message': 'Password Not Provided'}, 403
+
+        if data['password'].isspace():
+            return {'Message': 'Password Not Provided'}, 403
 
         hashed_password = set_password(data['password'])
         access_token = create_access_token(identity=data["username"])
@@ -214,4 +267,3 @@ def set_password(password):
 def check_password(hashed_password, password):
     """Check if password is hashed"""
     return bcrypt.check_password_hash(hashed_password, password)
-
