@@ -1,0 +1,6 @@
+# Everything needed in development environment
+
+-r prod.txt
+
+# PEP8
+pylint==1.8.3
