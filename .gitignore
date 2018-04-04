@@ -4,7 +4,9 @@ __pycache__/
 *$py.class
 .idea/
 ./vscode
-./pytest_cache
+.pytest_cache/
+coverage_html/
+
 
 
 # C extensions

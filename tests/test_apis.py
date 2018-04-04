@@ -1,6 +1,6 @@
 from api.models import User, Book
 import unittest
-from api import app
+from run import app
 import json
 import run
 
@@ -22,14 +22,17 @@ class UserEndpoints(unittest.TestCase):
             'api/v1/auth/logout',
         )
 
-    def test_user_registration(self):
+    def test_registration(self):
+        response = self.app.post('/api/v1/auth/register', data=json.dumps(self.user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("User Created Successfully", str(response.data))
+
+    def test_user_registration_duplicate(self):
         response = self.app.post('/api/v1/auth/register', data=json.dumps(self.user), content_type='application/json')
         self.assertEqual(response.status_code, 201)
+        self.assertIn("This username is already taken", str(response.data))
 
-    def test_registration_duplicate(self):
-        response = self.app.post('/api/v1/auth/register', data=json.dumps(self.user), headers={'content-type': 'application/json'})
-
-        self.assertEqual(response.status_code, 201)
 
     def test_register_user_bad_request(self):
         """
@@ -43,11 +46,11 @@ class UserEndpoints(unittest.TestCase):
     def test_login_bad_request(self):
         """
         Tests Login API endpoint when an empty object is passed
-        Asserts 400 Bad Request Status Code Response
         """
         user = {}
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
         self.assertEqual(response.status_code, 401)
+        self.assertIn("Wrong User Name or Password", str(response.data))
 
     def test_login_user_not_registered(self):
         """
@@ -60,6 +63,7 @@ class UserEndpoints(unittest.TestCase):
         }
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
         self.assertEqual(response.status_code, 401)
+        self.assertIn("Wrong User Name or Password", str(response.data))
 
     def test_login_no_username(self):
         """
@@ -70,6 +74,7 @@ class UserEndpoints(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
 
         self.assertEqual(response.status_code, 401)
+        self.assertIn("Wrong User Name or Password", str(response.data))
 
     def test_login_no_password(self):
         """
