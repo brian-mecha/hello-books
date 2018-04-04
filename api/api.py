@@ -33,13 +33,23 @@ def check_if_token_in_blacklist(decrypted_token):
 
 class SingleBooksApi(MethodView):
     """Method to find, get, delete and edit a book"""
-    def get(self, id):
+    def get(self, book_id):
         """Function to find a single book"""
-        return jsonify(Book.getBook(id))
+        return jsonify(Book.getBook(book_id))
 
-    def delete(self, id):
+    def delete(self, book_id):
         """Function to delete a book"""
-        return jsonify(Book.deleteBook(id=id))
+        # response = Book.deleteBook(self, book_id)
+        # return jsonify(response)
+        print("><>><><>   >>>", book_id)
+        if Book.deleteBook(book_id) == {'Message': 'Book Deleted Successfully'}:
+            res = jsonify(Book.deleteBook(book_id=book_id))
+            res.status_code = 200
+            return res
+
+        res = jsonify(Book.deleteBook(book_id))
+        res.status_code = 404
+        return res
 
     def put(self, book_id):
         """Function to update a book"""
@@ -49,7 +59,7 @@ class SingleBooksApi(MethodView):
             response.status_code = 400
             return response
 
-        response = jsonify(Book.updateBook(id=book_id, data=data))
+        response = jsonify(Book.updateBook(book_id=book_id, data=data))
         response.status_code = 200
         return response
 
@@ -57,18 +67,40 @@ class BooksApi(MethodView):
     """Method to get all books and add a book"""
     def get(self):
         """Function to get all books"""
-        res = jsonify(Book.get_all_books(self))
-        print(">>>>>>   ", res)
-        res.status_code = 200
 
-        return res
+        # create a empty list for all books
+        # assign get all books to var
+        #loop through all boooks and serialize
+        #append each book to all_books
+        # jsonify all  books
+
+        allBooks = []
+        data = Book.get_all_books()
+        for book in data:
+            print("><><<><><>>>>>>>>>   ", book)
+            allBooks.append(book.serialize())
+
+        # return jsonify(allBooks)
+
+        response = jsonify(allBooks)
+        response.status_code = 200
+
+        return response
+
+
+        # res = jsonify(Book.get_all_books())
+        # res.status_code = 200
+        #
+        # return res
 
     def post(self):
         """Function to add a book"""
         data = request.get_json(self)
         valid_book = BookSchema().load(data)
+        print("><><><???????  ", valid_book.data)
 
-        books.append(valid_book)
+        new_book = Book(title=valid_book.data["title"], description=valid_book.data["description"], author=valid_book.data["author"])
+        new_book.createBook()
 
         return jsonify({'Message': 'Book added successfully.'})
 

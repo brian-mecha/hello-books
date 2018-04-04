@@ -11,18 +11,7 @@ class UserEndpoints(unittest.TestCase):
         user = User('1','brian', 'password123', 'False')
         self.user = user.serialize
 
-    def login(self, email, password):
-        return self.app.post(
-            '/api/v1/auth/login',
-            data = dict(email = email, password = password),
-        )
-
-    def logout(self):
-        return self.app.get(
-            'api/v1/auth/logout',
-        )
-
-    def test_registration(self):
+    def test_user_registration(self):
         response = self.app.post('/api/v1/auth/register', data=json.dumps(self.user), content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
@@ -58,7 +47,7 @@ class UserEndpoints(unittest.TestCase):
         Asserts 404 Not Found Status Code Response
         """
         user = {
-            "username": "notregistered",
+            "username": "thisuser",
             "password": "password"
         }
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
@@ -98,23 +87,19 @@ class BookEndpoints(unittest.TestCase):
         # self.book = Book('GIT ESSENTIALS', 'Awesome read about git','Brian Mecha')
         self.book = {"title": "Kamusi ya Methali", "author": "Mecha", "description": "uses of methali"}
 
-    def test_api_exists(self):
-        response = self.app.get("/api/v1/books", content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-
     def test_add_book(self):
-        response = self.app.post('/api/v1/books', data=json.dumps(self.book))
+        response = self.app.post('/api/v1/books', data=json.dumps(self.book), content_type="application/json")
         return self.assertEqual(response.status_code, 200)
 
     def test_books(self):
-        response = self.app.get('/api/v1/books')
+        response = self.app.get('/api/v1/books', content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_book_already_exists(self):
         """
         Tests whether a book being added already exists
         """
-        response = self.app.post('/api/v1/books', data=json.dumps(self.book))
+        response = self.app.post('/api/v1/books', data=json.dumps(self.book), content_type="application/json")
         self.assertEqual(response.status_code, 200, {'Message': 'Book Already Exists'})
 
         self.assertEqual(response.status_code, 200)
@@ -123,9 +108,8 @@ class BookEndpoints(unittest.TestCase):
         """
         Tests Delete book API endpoint if book does not exist
         """
-
-        res = self.app.delete('/api/v1/books/100')
-        self.assertEqual(res.status_code, 404)
+        response = self.app.delete('/api/v1/book/10', content_type="application/json")
+        self.assertEqual(response.status_code, 404)
 
 if __name__ == '__main__':
     unittest.main()

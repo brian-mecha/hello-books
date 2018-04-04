@@ -9,8 +9,10 @@ click==6.7
 coverage==4.0.3
 Flask==0.12.2
 Flask-Bcrypt==0.7.1
+Flask-Gunicorn==0.1.1
 Flask-JWT-Extended==3.7.2
 Flask-RESTful==0.3.6
+gunicorn==19.7.1
 idna==2.6
 isort==4.3.4
 itsdangerous==0.24
