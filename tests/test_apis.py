@@ -58,9 +58,9 @@ class UserEndpoints(unittest.TestCase):
         Tests Login API endpoint when an empty object is passed
         """
         user = {}
-        response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
+        response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
-        self.assertIn("Wrong User Name or Password", str(response.data))
+        self.assertIn("Login credentials missing", str(response.data))
 
     def test_login_user_not_registered(self):
         """
@@ -84,20 +84,20 @@ class UserEndpoints(unittest.TestCase):
         """
 
         user = {"username": "", "password": "12344567"}
-        response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
+        response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
 
         self.assertEqual(response.status_code, 401)
-        self.assertIn("Wrong User Name or Password", str(response.data))
+        self.assertIn("Username is required", str(response.data))
 
     def test_login_no_password(self):
         """
         Tests Login API endpoint when password is not provided
         """
 
-        user = {
-            "username": "mecha", "password": ""}
-        response = self.app.post('/api/v1/auth/login', data=json.dumps(user))
+        user = {"username": "mecha", "password": ""}
+        response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
+        # self.assertIn("Password must be non-empty", str(response.data))
 
 
 class BookEndpoints(unittest.TestCase):

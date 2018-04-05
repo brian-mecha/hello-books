@@ -12,6 +12,15 @@ class User(object):
         self.password = password
         self.admin = admin
 
+    @property
+    def serialize(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "password": self.password,
+            'admin': self.admin
+        }
+
     def CreateUser(self):
         """Model to create a user"""
         if len(users) == 0:
@@ -31,7 +40,8 @@ class User(object):
 
                 return {'Message': 'User created Successfully'}
 
-    def AllUsers(self):
+    @staticmethod
+    def AllUsers():
         """Function to get all users"""
         return users
 
@@ -66,14 +76,6 @@ class User(object):
             else:
 
                 return {'Message': 'Book Does Not Exist'}
-
-    @property
-    def serialize(self):
-        return {
-            "user_id": self.user_id,
-            "username": self.username,
-            "password": self.password
-        }
 
 class Book(object):
     def __init__(self, title, description, author):
