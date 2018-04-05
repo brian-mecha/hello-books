@@ -39,7 +39,6 @@ class UserEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn("This username is already taken", str(response.data))
 
-
     def test_register_user_fail(self):
         """
         Tests whether the register user registration API endpoint can pass Missing User Information
@@ -47,11 +46,81 @@ class UserEndpoints(unittest.TestCase):
         """
 
         user = {}
-        res = self.app.post('/api/v1/auth/register',
+        response = self.app.post('/api/v1/auth/register',
                             data=json.dumps(user),
                             content_type="application/json")
 
-        self.assertEqual(res.status_code, 403)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Missing or wrong inputs", str(response.data))
+
+    def test_register_user_without_username(self):
+        """
+        Tests whether the register user registration API endpoint can pass without a Username
+        :return:
+        """
+
+        user = {"username": "", "password": "yryrur8d"}
+        response = self.app.post('/api/v1/auth/register',
+                            data=json.dumps(user),
+                            content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Username Not Provided", str(response.data))
+
+
+    def test_register_user_with_username_as_space(self):
+        """
+        Tests whether the register user registration API endpoint can pass with a Username as a
+        :return:
+        """
+
+        user = {"username": " ", "password": "yryrur8d"}
+        response = self.app.post('/api/v1/auth/register',
+                            data=json.dumps(user),
+                            content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Username Not Provided", str(response.data))
+
+
+    def test_register_user_without_password(self):
+        """
+        Tests whether the register user registration API endpoint can pass without a Password
+        :return:
+        """
+
+        user = {"username": "Brian", "password": ""}
+        response = self.app.post('/api/v1/auth/register',
+                            data=json.dumps(user),
+                            content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Password Not Provided", str(response.data))
+
+
+    def test_register_user_without_password_as_space(self):
+        """
+        Tests whether the register user registration API endpoint can pass with a Password as a space
+        :return:
+        """
+
+        user = {"username": "Brian", "password": "     "}
+        response = self.app.post('/api/v1/auth/register',
+                            data=json.dumps(user),
+                            content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_login(self):
+        """
+        Tests Li a user can login
+        :return:
+        """
+
+        response = self.app.post('/api/v1/auth/login', data=json.dumps(self.user), content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("You logged in successfully", str(response.data))
+
 
     def test_login_bad_request(self):
         """
@@ -61,22 +130,6 @@ class UserEndpoints(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
         self.assertIn("Login credentials missing", str(response.data))
-
-    def test_login_user_not_registered(self):
-        """
-        Tests Login API endpoint when user does not exist
-        Asserts 404 Not Found Status Code Response
-        """
-        user = {
-            "username": "thisuser",
-            "password": "password"
-        }
-        response = self.app.post('/api/v1/auth/login',
-                                 data=json.dumps(user),
-                                 content_type="application/json")
-
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("Wrong User Name or Password", str(response.data))
 
     def test_login_no_username(self):
         """
@@ -97,7 +150,6 @@ class UserEndpoints(unittest.TestCase):
         user = {"username": "mecha", "password": ""}
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
-        # self.assertIn("Password must be non-empty", str(response.data))
 
 
 class BookEndpoints(unittest.TestCase):
@@ -121,6 +173,39 @@ class BookEndpoints(unittest.TestCase):
                                  content_type="application/json")
         return self.assertEqual(response.status_code, 200)
 
+    def test_add_book_without_title(self):
+        """
+        Tests whether a book can be added without a title
+        :return:
+        """
+        book = {"title": "", "description": "What a wonderful bootcamp", "author": "Mecha B"}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_without_description(self):
+        """
+        Tests whether a book can be added without a title
+        :return:
+        """
+        book = {"title": "BOOTCAMP", "description": "", "author": "Mecha B"}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_without_author(self):
+        """
+        Tests whether a book can be added without a title
+        :return:
+        """
+        book = {"title": "BOOTCAMP", "description": "Wonderful a bootcamp", "author": " "}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
     def test_update_book(self):
         """
         Tests whether a book can be updatede
@@ -130,6 +215,17 @@ class BookEndpoints(unittest.TestCase):
                                 data=json.dumps(self.book),
                                 content_type="application/json")
         return self.assertEqual(response.status_code, 200)
+
+    def test_update_empty_book(self):
+        """
+        Tests whether a book can be updatede
+        :return:
+        """
+        book = {}
+        response = self.app.put('/api/v1/book/1',
+                                data=json.dumps(book),
+                                content_type="application/json")
+        return self.assertEqual(response.status_code, 400)
 
     def test_books(self):
         """

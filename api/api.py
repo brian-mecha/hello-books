@@ -138,7 +138,7 @@ class BooksApi(MethodView):
 
         try:
             schema = {
-                # "type": "object",
+                "type": "object",
                 "properties": {
                     "title": {"type": "string"},
                     "desciption": {"type": "string"},
@@ -180,7 +180,7 @@ class BooksApi(MethodView):
             return jsonify({'Success': 'Book added successfully.'})
 
         except:
-            return {"Error": "Missing inputs"}, 400
+            return {"Error": "Missing or wrong inputs"}, 400
 
 class LoginUser(MethodView):
     """Method to login user"""
@@ -194,7 +194,6 @@ class LoginUser(MethodView):
             return {"Error": "Login credentials missing"}, 401
 
         valid_user = UserSchema().load(user)
-        # print(">>>>>   ", valid_user)
 
         if not valid_user.data["username"]:
             return {"error": "Username is required"}, 401
@@ -242,33 +241,55 @@ class RegisterUser(MethodView):
         """Registers a new user"""
         data = request.get_json(self)
 
-        if len(data) == 0:
-            return {'Message': 'No User Data Passed'}, 403
+        try:
+            schema = {
+                "type": "object",
+                "properties": {
+                    "username": {"type": "string"},
+                    "password": {"type": "string"},
+                },
+                "required": ["username", "password"]
+            }
 
-        if not data['username']:
-            return {'Message': 'Username Not Provided'}, 403
+            validate(data, schema)
 
-        if data['username'].isspace():
-            return {'Message': 'Username Not Provided'}, 403
+            if len(data) == 0:
+                return {'Message': 'No User Data Passed'}, 403
 
-        if not data['password']:
-            return {'Message': 'Password Not Provided'}, 403
+            if not data['username']:
+                return {'Message': 'Username Not Provided'}, 403
 
-        if data['password'].isspace():
-            return {'Message': 'Password Not Provided'}, 403
+            if data['username'].isspace():
+                return {'Message': 'Username Not Provided'}, 403
 
-        hashed_password = set_password(data['password'])
-        access_token = create_access_token(identity=data["username"])
+            if not data['password']:
+                return {'Message': 'Password Not Provided'}, 403
 
-        response = jsonify(User(username=data['username'], user_id=self, password=hashed_password, admin=data).CreateUser())
-        response.status_code = 201
-        response.token = access_token
-        return response
+            if data['password'].isspace():
+                return {'Message': 'Password Not Provided'}, 403
+
+            hashed_password = set_password(data['password'])
+            access_token = create_access_token(identity=data["username"])
+
+            response = jsonify(User(username=data['username'], user_id=self, password=hashed_password, admin=data).CreateUser())
+            response.status_code = 201
+            response.token = access_token
+            return response
+
+        except:
+
+            return {"Error": "Missing or wrong inputs"}, 400
 
 class ResetPassword(MethodView):
-    """Method to reset a password"""
+    """
+    Method to reset a password
+    """
+
     def post(self):
-        """Function to reset password"""
+        """
+        Function to reset password
+        :return:
+        """
         userdata = request.get_json()
         try:
             valid_user = UserSchema().load(userdata)
@@ -296,10 +317,16 @@ class ResetPassword(MethodView):
 
 
 class BorrowBook(MethodView):
-    """Method to borrow a book"""
+    """
+    Method to borrow a book
+    """
     @jwt_required
     def post(self, book_id):
-        """Gets user email from token"""
+        """
+        Function to borrow a book
+        :param book_id:
+        :return:
+        """
         book_is_present = [book for book in books if book["id"] == id]
         if len(book_is_present) == 0:
             abort(404, "book Does Not Exist")
@@ -310,16 +337,28 @@ class BorrowBook(MethodView):
 
 @jwt.expired_token_loader
 def my_expired_token_callback():
-    """Generates new token"""
+    """
+    Generates new token
+    :return: token
+    """
     jwt_data = get_jwt_identity()
     access = create_access_token(identity=jwt_data)
     return jsonify(access), 200
 
 def set_password(password):
-    """Hashes the password"""
+    """
+    Hashes the password
+    :param password:
+    :return:
+    """
     password = bcrypt.generate_password_hash(password).decode('utf-8')
     return password
 
 def check_password(hashed_password, password):
-    """Check if password is hashed"""
+    """
+    Check if password is hashed
+    :param hashed_password:
+    :param password:
+    :return:
+    """
     return bcrypt.check_password_hash(hashed_password, password)
