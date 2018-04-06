@@ -1,7 +1,7 @@
 from marshmallow import Schema, fields
 
 class UserSchema(Schema):
-    name = fields.Str()
+    username = fields.Str()
     password=fields.Str()
 
     def __repr__(self):

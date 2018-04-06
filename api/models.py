@@ -12,32 +12,51 @@ class User(object):
         self.password = password
         self.admin = admin
 
+    @property
+    def serialize(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "password": self.password,
+            'admin': self.admin
+        }
+
     def CreateUser(self):
-        """Model to create a user"""
+        """
+        Model to create a user
+        :return:
+        """
         if len(users) == 0:
             users.append(self)
-            return {'Message': 'User Created Successfully'}
+            return {'Message': 'User Created Successfully'}, 201
 
         for user in users:
 
             if user.user_id == self.user_id:
-                return {'Error': 'This user already exists'}
+                return {'Error': 'This user already exists'}, 401
 
             elif user.username == self.username:
-                return {'Error': 'This username is already taken'}
+                return {'Error': 'This username is already taken'}, 401
 
             else:
                 users.append(self)
 
                 return {'Message': 'User created Successfully'}
 
-    def AllUsers(self):
-        """Function to get all users"""
+    @staticmethod
+    def AllUsers():
+        """
+        Function to get all users
+        :return: users
+        """
         return users
 
     def resetPassword(id, username, password):
         """
         Resets the user password
+        :param username:
+        :param password:
+        :return: message
         """
 
         for user in users:
@@ -55,6 +74,7 @@ class User(object):
     def borrowBook(book_id):
         """
         Function for user to borrow a book
+        :return:
         """
 
         for book in books:
@@ -67,31 +87,27 @@ class User(object):
 
                 return {'Message': 'Book Does Not Exist'}
 
-    @property
-    def serialize(self):
-        return {
-            "user_id": self.user_id,
-            "username": self.username,
-            "password": self.password
-        }
-
 class Book(object):
     def __init__(self, title, description, author):
         """
         Class Initializes a Book instance with following parameters:
-        :param title: Bool Title
+        :param title: Book Title
         :param author: Book Author
+        :param description: Book Description
         """
 
-        self.id = len(books) + 1
+        self.book_id = len(books) + 1
         self.title = title
         self.description = description
         self.author = author
 
-    @property
     def serialize(self):
-        """Serialize."""
+        """
+        Serialize
+        :return:
+        """
         return {
+            'book_id': self.book_id,
             'title': self.title,
             'author': self.author,
             'description': self.description
@@ -103,62 +119,42 @@ class Book(object):
         Functions assigns the book object an id and appends it to the book list
         :return: Success message
         """
+        # for book in books:
 
         if len(books) == 0:
-            # book = {}
-            # book[self.id] = self
-            self.id = len(books) + 1
-            books.append(object)
+            books.append(self)
 
             return {'Success': 'Book Created Successfully'}
 
-        else:
-
-            for book in books:
-
-                if self.id in book.keys():
-
-                    return {'Error': 'Book Already Exists'}
-
-                else:
-
-                    book[int(self.id)] = self
-                    books.append(book)
-
-                    return {'Success': 'Book Created Successfully'}
-    @property
-    def apicreatebook(self, data):
-        """
-        :param data:
-        :return:
-        """
-
         for book in books:
-            if id in book.keys():
+
+            if self.book_id == book.book_id:
 
                 return {'Error': 'Book Already Exists'}
 
             else:
 
-                books.append(data)
+                books.append(self)
 
                 return {'Success': 'Book Created Successfully'}
 
-    def get_all_books(self):
+    @staticmethod
+    def get_all_books():
         """
-        :return:
+        Functions to get all books
+        :return: books
         """
 
         return books
 
-    def deleteBook(id):
+    @staticmethod
+    def deleteBook(book_id):
         """
+        Function to delete a book
         :return:
         """
-
         for book in books:
-
-            if book['id'] == id:
+            if book.book_id == book_id:
 
                 books.remove(book)
 
@@ -168,31 +164,34 @@ class Book(object):
 
                 return {'Error': 'Book Does Not Exist'}
 
-    def updateBook(self, id, data):
+    @staticmethod
+    def updateBook(book_id, data):
         """
+        Function to delete a book
         :param data:
         :return:
         """
         for book in books:
 
-            if book['id'] == id:
-                book['title'] = data['title']
-                book['author'] = data['author']
-                book['description'] = data['description']
+            if book.book_id == book_id:
+                book.title = data['title']
+                book.author = data['author']
+                book.description = data['description']
 
                 return {'Message': 'Book Update Successful'}
 
         return {'Error': 'Book Does Not Exist'}
 
-
-    def getBook(id):
+    @staticmethod
+    def getBook(book_id):
         """
+        Function to get a single book
         :return:
         """
 
         for book in books:
 
-            if book['id'] == id:
+            if book.book_id == book_id:
 
                 return book
 
