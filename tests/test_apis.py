@@ -25,7 +25,7 @@ class UserEndpoints(unittest.TestCase):
                                  content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
-        self.assertIn("User Created Successfully", str(response.data))
+        self.assertIn("User created Successfully", str(response.data))
 
     def test_user_registration_duplicate(self):
         """
@@ -111,15 +111,15 @@ class UserEndpoints(unittest.TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_login(self):
+    def test_unregistered_user_login(self):
         """
-        Tests Li a user can login
+        Tests whether a user can login
         :return:
         """
 
         response = self.app.post('/api/v1/auth/login', data=json.dumps(self.user), content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("You logged in successfully", str(response.data))
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("User Does Not Exist", str(response.data))
 
 
     def test_login_bad_request(self):

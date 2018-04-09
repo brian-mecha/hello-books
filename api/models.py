@@ -7,7 +7,8 @@ users = []
 
 class User(object):
     def __init__(self, user_id, username, password, admin):
-        self.user_id = user_id
+        # self.user_id = user_id
+        self.user_id = len(users) + 1
         self.username = username
         self.password = password
         self.admin = admin
@@ -28,7 +29,7 @@ class User(object):
         """
         if len(users) == 0:
             users.append(self)
-            return {'Message': 'User Created Successfully'}, 201
+            return {'Message': 'User created Successfully'}, 201
 
         for user in users:
 

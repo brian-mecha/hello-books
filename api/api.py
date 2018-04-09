@@ -190,38 +190,39 @@ class LoginUser(MethodView):
         :return:
         """
         user = request.get_json(self)
+
         if not user:
             return {"Error": "Login credentials missing"}, 401
 
         valid_user = UserSchema().load(user)
 
-        if not valid_user.data["username"]:
+        if not valid_user.data["username"] or valid_user.data["username"].isspace():
             return {"error": "Username is required"}, 401
 
-        elif valid_user.data["username"].isspace():
-            return {"error": "Username is required"}, 401
-
-        elif not valid_user.data["password"]:
+        elif not valid_user.data["password"] or valid_user.data["password"].isspace():
             return {"error": "Password is required"}, 401
 
-        elif valid_user.data["password"].isspace():
-            return {"error": "Password is required"}, 401
+        users_surname = [user for user in users if user.username == valid_user.data["username"]]
+        users_password = [user for user in users if check_password(user.password, valid_user.data["password"])]
 
-        hashed_password = set_password(valid_user.data["password"])
+        if len(users_surname) == 0:
+            abort(401, "User Does Not Exist")
 
-        if check_password(hashed_password, valid_user.data["password"]):
+        if len(users_password) == 0:
+            abort(401, "Wrong User Name or Password")
 
-            access_token = create_access_token(valid_user.data["username"])
+        access_token = create_access_token(identity=valid_user.data["username"])
 
-            if access_token:
-                response = {
-                    "message": "You logged in successfully",
-                    "access_token": access_token
-                }
+        if access_token:
+            response = {
+                "message": "You logged in successfully",
+                "access_token": access_token
+            }
 
-                return response, 200
-            else:
-                abort(401, "Wrong User Name or Password")
+            return response, 200
+        else:
+            abort(401, "Wrong User Name or Password")
+
 
 class LogoutUser(MethodView):
     """Method to logout user"""
@@ -294,23 +295,20 @@ class ResetPassword(MethodView):
         try:
             valid_user = UserSchema().load(userdata)
 
-            if get_jwt_identity() == valid_user.data["username"]:
-                users_surname = [user for user in users_data if user["surname"] == valid_user.data["surname"]]
-                if len(users_surname) == 0:
-                    abort(401, "User Does Not Exist")
-
-                else:
-                    users_data.remove(users_surname[0])
-                    valid_user.data["password"] = set_password(userdata["password"])
-
-                    # User.resetPassword(id=valid_user.data["id"], password=valid_user["password"], username=valid_user["surname"])
-                    users_data.append(valid_user.data)
-                    access_token = create_access_token(identity=userdata["username"])
-
-                    return jsonify(valid_user.data), 200, {"jwt": access_token}
+            # users_surname = [user for user in users_data if user["username"] == valid_user.data["username"]]
+            if len(users) == 0:
+                abort(401, "User Does Not Exist")
 
             else:
-                abort(401, "You  Are Not Authorized To Reset")
+                # users_data.remove(users_surname[0])
+                valid_user.data["password"] = set_password(userdata["password"])
+
+                # User.resetPassword(id=valid_user.data["id"], password=valid_user.data["password"], username=valid_user.data["username"])
+                users_data.append(valid_user.data)
+                access_token = create_access_token(identity=userdata["username"])
+
+                # return jsonify(valid_user.data), 200, {"jwt": access_token}
+                return {"Success": "Password reset successful"}, 200, {"jwt": access_token}
 
         except ValidationError as err:
             abort(401, err.messages)
