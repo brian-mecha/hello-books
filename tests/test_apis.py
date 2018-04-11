@@ -119,7 +119,17 @@ class UserEndpoints(unittest.TestCase):
 
         response = self.app.post('/api/v1/auth/login', data=json.dumps(self.user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
-        self.assertIn("User Does Not Exist", str(response.data))
+        self.assertIn("Wrong User Name or Password", str(response.data))
+
+    def test_unregistered_user_logout(self):
+        """
+        Tests whether a user can login
+        :return:
+        """
+
+        response = self.app.post('/api/v1/auth/logout', data=json.dumps(self.user), content_type="application/json")
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Missing Authorization Header", str(response.data))
 
 
     def test_login_bad_request(self):
@@ -184,12 +194,45 @@ class BookEndpoints(unittest.TestCase):
                                  content_type="application/json")
         return self.assertEqual(response.status_code, 403)
 
-    def test_add_book_without_description(self):
+    def test_add_book_with_title_as_title(self):
         """
         Tests whether a book can be added without a title
         :return:
         """
+        book = {"title": " ", "description": "What a wonderful bootcamp", "author": "Mecha B"}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_without_description(self):
+        """
+        Tests whether a book can be added without a description
+        :return:
+        """
         book = {"title": "BOOTCAMP", "description": "", "author": "Mecha B"}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_with_description_as_space(self):
+        """
+        Tests whether a book can be added without a description
+        :return:
+        """
+        book = {"title": "BOOTCAMP", "description": " ", "author": "Mecha B"}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_with_author_as_space(self):
+        """
+        Tests whether a book can be added without a title
+        :return:
+        """
+        book = {"title": "BOOTCAMP", "description": "Wonderful a bootcamp", "author": " "}
         response = self.app.post('/api/v1/books',
                                  data=json.dumps(book),
                                  content_type="application/json")
@@ -200,11 +243,22 @@ class BookEndpoints(unittest.TestCase):
         Tests whether a book can be added without a title
         :return:
         """
-        book = {"title": "BOOTCAMP", "description": "Wonderful a bootcamp", "author": " "}
+        book = {"title": "BOOTCAMP", "description": "Wonderful a bootcamp", "author": ""}
         response = self.app.post('/api/v1/books',
                                  data=json.dumps(book),
                                  content_type="application/json")
         return self.assertEqual(response.status_code, 403)
+
+    def test_add_book_without_input(self):
+        """
+        Tests whether a book can be added without a title
+        :return:
+        """
+        book = {}
+        response = self.app.post('/api/v1/books',
+                                 data=json.dumps(book),
+                                 content_type="application/json")
+        return self.assertEqual(response.status_code, 400)
 
     def test_update_book(self):
         """

@@ -62,7 +62,7 @@ class SingleBooksApi(MethodView):
         data = Book.getBook(book_id)
 
         if not data:
-            return {'Error': 'Book Does not Exist'}
+            return {'Error': 'Book Does not Exist'}, 404
 
         res = jsonify(Book.deleteBook(book_id))
         res.status_code = 200
@@ -88,23 +88,14 @@ class SingleBooksApi(MethodView):
 
         valid_book = BookSchema().load(data)
 
-        if not valid_book.data["title"]:
+        if not valid_book.data["title"] or valid_book.data["title"].isspace():
             return {'Error': 'Book must have a Title'}, 403
 
-        elif valid_book.data["title"].isspace():
-            return {'Error': 'Book must have a Title'}, 403
-
-        elif valid_book.data["description"].isspace():
+        elif valid_book.data["description"].isspace() or not valid_book.data["description"]:
             return {'Error': 'Book must have a Description'}, 403
 
-        elif not valid_book.data["description"]:
-            return {'Error': 'Book must have a Description'}, 403
-
-        elif not valid_book.data["author"]:
+        elif not valid_book.data["author"] or valid_book.data["author"].isspace():
             return {'Error': 'Book must have an Author'}, 403
-
-        elif valid_book.data["author"].isspace():
-            return {'Error': 'Book must have a Author'}, 403
 
         response = jsonify(Book.updateBook(book_id=book_id, data=data))
         response.status_code = 200
@@ -205,10 +196,7 @@ class LoginUser(MethodView):
         users_surname = [user for user in users if user.username == valid_user.data["username"]]
         users_password = [user for user in users if check_password(user.password, valid_user.data["password"])]
 
-        if len(users_surname) == 0:
-            abort(401, "User Does Not Exist")
-
-        if len(users_password) == 0:
+        if len(users_password) == 0 or len(users_surname) == 0:
             abort(401, "Wrong User Name or Password")
 
         access_token = create_access_token(identity=valid_user.data["username"])
@@ -295,9 +283,9 @@ class ResetPassword(MethodView):
         try:
             valid_user = UserSchema().load(userdata)
 
-            # users_surname = [user for user in users_data if user["username"] == valid_user.data["username"]]
-            if len(users) == 0:
-                abort(401, "User Does Not Exist")
+            users_surname = [user for user in users if user.username == valid_user.data["username"]]
+            if len(users_surname) == 0:
+                abort(401, "Wrong Username")
 
             else:
                 # users_data.remove(users_surname[0])
@@ -307,7 +295,6 @@ class ResetPassword(MethodView):
                 users_data.append(valid_user.data)
                 access_token = create_access_token(identity=userdata["username"])
 
-                # return jsonify(valid_user.data), 200, {"jwt": access_token}
                 return {"Success": "Password reset successful"}, 200, {"jwt": access_token}
 
         except ValidationError as err:
@@ -347,7 +334,7 @@ def set_password(password):
     """
     Hashes the password
     :param password:
-    :return:
+    :return: password
     """
     password = bcrypt.generate_password_hash(password).decode('utf-8')
     return password
