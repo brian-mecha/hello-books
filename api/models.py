@@ -6,6 +6,7 @@ books = []
 users = []
 
 class User(object):
+
     def __init__(self, user_id, username, password, admin):
         # self.user_id = user_id
         self.user_id = len(users) + 1
@@ -89,6 +90,7 @@ class User(object):
                 return {'Message': 'Book Does Not Exist'}
 
 class Book(object):
+
     def __init__(self, title, description, author):
         """
         Class Initializes a Book instance with following parameters:

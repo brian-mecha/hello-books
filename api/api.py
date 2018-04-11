@@ -234,7 +234,7 @@ class LogoutUser(MethodView):
         """
         jti = get_raw_jwt()['jti']
         blacklist.add(jti)
-        return jsonify({"msg": "Successfully logged out"}), 200
+        return {"msg": "Successfully logged out"}, 200
 
 class RegisterUser(MethodView):
     """Method to register a new user"""
@@ -325,12 +325,12 @@ class BorrowBook(MethodView):
         :param book_id:
         :return:
         """
-        book_is_present = [book for book in books if book["id"] == id]
+        book_is_present = [book for book in books if book.book_id == book_id]
         if len(book_is_present) == 0:
-            abort(404, "book Does Not Exist")
+            abort(404, "Book Does Not Exist")
         borrowed_book = {}
         borrowed_book["user_username"] = get_jwt_identity()
-        borrowed_book["book_id"] = id
+        borrowed_book["book_id"] = book_id
         return jsonify("Book Borrowed Successfuly")
 
 @jwt.expired_token_loader
