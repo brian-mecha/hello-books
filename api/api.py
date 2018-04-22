@@ -81,7 +81,7 @@ class SingleBooksApi(MethodView):
         if not book_find:
             return {'Error': 'Book Does not Exist'}, 404
 
-        if len(data) == 0:
+        if data is None:
             response = jsonify({"Message": "No Book Update Infomation Passed"})
             response.status_code = 400
             return response
@@ -142,23 +142,14 @@ class BooksApi(MethodView):
 
             valid_book = BookSchema().load(data)
 
-            if not valid_book.data["title"]:
+            if not valid_book.data["title"] or valid_book.data["title"].isspace():
                 return {'Error': 'Book must have a Title'}, 403
 
-            elif valid_book.data["title"].isspace():
-                return {'Error': 'Book must have a Title'}, 403
-
-            elif valid_book.data["description"].isspace():
+            elif not valid_book.data["description"] or valid_book.data["description"].isspace():
                 return {'Error': 'Book must have a Description'}, 403
 
-            elif not valid_book.data["description"]:
-                return {'Error': 'Book must have a Description'}, 403
-
-            elif not valid_book.data["author"]:
+            elif not valid_book.data["author"] or valid_book.data["author"].isspace():
                 return {'Error': 'Book must have an Author'}, 403
-
-            elif valid_book.data["author"].isspace():
-                return {'Error': 'Book must have a Author'}, 403
 
             else:
 
@@ -183,9 +174,15 @@ class LoginUser(MethodView):
         user = request.get_json(self)
 
         if not user:
-            return {"Error": "Login credentials missing"}, 401
+            abort(401, "Login credentials missing")
 
         valid_user = UserSchema().load(user)
+
+        users_surname = [user for user in users if user.username == valid_user.data["username"]]
+        users_password = [user for user in users if check_password(user.password, valid_user.data["password"])]
+
+        if not users_password or not users_surname:
+            abort(401, "Wrong User Name or Password")
 
         if not valid_user.data["username"] or valid_user.data["username"].isspace():
             return {"error": "Username is required"}, 401
@@ -193,11 +190,7 @@ class LoginUser(MethodView):
         elif not valid_user.data["password"] or valid_user.data["password"].isspace():
             return {"error": "Password is required"}, 401
 
-        users_surname = [user for user in users if user.username == valid_user.data["username"]]
-        users_password = [user for user in users if check_password(user.password, valid_user.data["password"])]
 
-        if len(users_password) == 0 or len(users_surname) == 0:
-            abort(401, "Wrong User Name or Password")
 
         access_token = create_access_token(identity=valid_user.data["username"])
 
@@ -242,7 +235,7 @@ class RegisterUser(MethodView):
 
             validate(data, schema)
 
-            if len(data) == 0:
+            if data is None:
                 return {'Message': 'No User Data Passed'}, 403
 
             if not data['username']:
@@ -281,10 +274,11 @@ class ResetPassword(MethodView):
         """
         userdata = request.get_json()
         try:
+
             valid_user = UserSchema().load(userdata)
 
             users_surname = [user for user in users if user.username == valid_user.data["username"]]
-            if len(users_surname) == 0:
+            if users_surname is None:
                 abort(401, "Wrong Username")
 
             else:
@@ -313,7 +307,7 @@ class BorrowBook(MethodView):
         :return:
         """
         book_is_present = [book for book in books if book.book_id == book_id]
-        if len(book_is_present) == 0:
+        if book_is_present is None:
             abort(404, "Book Does Not Exist")
         borrowed_book = {}
         borrowed_book["user_username"] = get_jwt_identity()

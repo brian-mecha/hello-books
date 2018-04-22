@@ -116,8 +116,8 @@ class UserEndpoints(unittest.TestCase):
         Tests whether a user can login
         :return:
         """
-
-        response = self.app.post('/api/v1/auth/login', data=json.dumps(self.user), content_type="application/json")
+        user = {"username": "not", "password": "wsed"}
+        response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
         self.assertIn("Wrong User Name or Password", str(response.data))
 
@@ -150,7 +150,7 @@ class UserEndpoints(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=json.dumps(user), content_type="application/json")
 
         self.assertEqual(response.status_code, 401)
-        self.assertIn("Username is required", str(response.data))
+        self.assertIn("Wrong User Name or Password", str(response.data))
 
     def test_login_no_password(self):
         """
@@ -262,11 +262,14 @@ class BookEndpoints(unittest.TestCase):
 
     def test_update_book(self):
         """
-        Tests whether a book can be updatede
+        Tests whether a book can be updated
         :return:
         """
+
+        book = {"title": "BOOTCAMP26", "description": "Wonderful a bootcamp it was", "author": "Thosekuys"}
+
         response = self.app.put('/api/v1/book/1',
-                                data=json.dumps(self.book),
+                                data=json.dumps(book),
                                 content_type="application/json")
         return self.assertEqual(response.status_code, 200)
 
@@ -275,11 +278,11 @@ class BookEndpoints(unittest.TestCase):
         Tests whether a book can be updatede
         :return:
         """
-        book = {}
+        book = {"title": "", "description": "", "author": ""}
         response = self.app.put('/api/v1/book/1',
                                 data=json.dumps(book),
                                 content_type="application/json")
-        return self.assertEqual(response.status_code, 400)
+        return self.assertEqual(response.status_code, 403)
 
     def test_books(self):
         """
