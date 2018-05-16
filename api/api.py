@@ -1,4 +1,5 @@
 """Declares all enpoints used in Hello Books project"""
+import os
 from flask import abort, jsonify, request
 from marshmallow import ValidationError
 from flask_bcrypt import Bcrypt
@@ -9,7 +10,10 @@ from flask_jwt_extended import (
 from jsonschema import validate
 
 from api.models import *
-from api import app
+# from api import app
+from api import create_app
+config_name = os.getenv('APP_SETTINGS')
+app = create_app(config_name)
 
 from api.dataSchema import UserSchema
 from api.dataSchema import BookSchema
