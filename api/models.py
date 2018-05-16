@@ -4,7 +4,7 @@ Contains models used in our apps.
 
 from api import db
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import current_user
 
 
@@ -46,6 +46,9 @@ class User(db.Model):
         """
         return check_password_hash(self.password_hash, password)
 
+    def is_administrator(self):
+        return self.is_admin is True
+
     def create_user(self):
         db.session.add(self)
         db.session.commit()
@@ -71,7 +74,7 @@ class Book(db.Model):
     book_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(60), nullable=False, unique=True)
     author = db.Column(db.String(60), nullable=False)
-    description = db.Column(db.Text(255), nullable=False)
+    description = db.Column(db.Text(), nullable=False)
     availability = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.Date, nullable=False, default=datetime.today())
 
@@ -114,7 +117,7 @@ class BorrowingHistory(db.Model):
     __tablename__ = 'borrowed_books'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, default=1)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.book_id'), nullable=False, default=1)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
     date_borrowed = db.Column(db.Date, nullable=False, default=datetime.today())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
@@ -124,5 +127,62 @@ class BorrowingHistory(db.Model):
         return BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"), BorrowingHistory.date_borrowed.label("date_borrowed"), BorrowingHistory.due_date.label("due_date")).filter(BorrowingHistory.user_id == current_user.id).all()
 
     @staticmethod
-    def user_unreturned_books():
+    def unreturned_books_by_user():
         return BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"), BorrowingHistory.date_borrowed.label("date_borrowed"), BorrowingHistory.due_date.label("due_date")).filter(BorrowingHistory.user_id == current_user.id, Book.availability is False).all()
+
+    def borrow_book(self):
+        db.session.add(self)
+        db.session.commit()
+
+
+class ActiveTokens(db.Model):
+    """
+    Class containing the active tokens
+    """
+
+    __tablename__ = 'active_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    time_created = db.Column(db.DateTime, default=datetime.today())
+    user_email = db.Column(db.String, unique=True)
+    access_token = db.Column(db.String, unique=True)
+
+    def __init__(self, user_email, access_token):
+        self.user_email = user_email
+        self.access_token = access_token
+
+    def create_active_token(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete_active_token(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def is_expired(self):
+        return (datetime.now() - self.time_created) > timedelta(minutes=15)
+
+    @staticmethod
+    def find_user_with_token(user_email):
+        return ActiveTokens.query.filter_by(user_email=user_email).first()
+
+
+class RevokedTokens(db.Model):
+    """
+    Class containing revoked tokens
+    """
+    __tablename__ = 'revoked_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    time_revoked = db.Column(db.DateTime, default=datetime.today())
+    jti = db.Column(db.String(200), unique=True)
+
+    def revoke_token(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def is_jti_blacklisted(jti):
+        if RevokedTokens.query.filter_by(jti=jti).first():
+            return True
+        return False
