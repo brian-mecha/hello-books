@@ -61,6 +61,10 @@ class User(db.Model):
     def get_user_by_id(user_id):
         return User.query.filter_by(id=user_id).first()
 
+    @staticmethod
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email).first()
+
     def reset_password(self):
         """
         Function to reset user password

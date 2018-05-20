@@ -191,6 +191,62 @@ class UserUnreturnedBooks(MethodView):
         return {"UNRETURNED BOOKS": [book.serialize for book in unreturned]}, 200
 
 
+class RegisterUser(MethodView):
+    """Method to register a new user"""
+    def post(self):
+        """Registers a new user"""
+        data = request.get_json(self)
+
+        # try:
+        schema = {
+            "type": "object",
+            "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"},
+                "email": {"type": "string"},
+            },
+            "required": ["username", "password", "email"]
+        }
+
+        validate(data, schema)
+
+        if data is None:
+            return {'Message': 'No User Data Passed'}, 403
+
+        if not data['username']:
+            return {'Message': 'Username Not Provided'}, 403
+
+        if data['username'].isspace():
+            return {'Message': 'Username Not Provided'}, 403
+
+        if not data['password']:
+            return {'Message': 'Password Not Provided'}, 403
+
+        if data['password'].isspace():
+            return {'Message': 'Password Not Provided'}, 403
+
+        users = User.all_users()
+        users_email = [user for user in users if user.email == data["email"]]
+        if users_email:
+            return {"Message": "This Email already exists."}, 200
+
+        users_username = [user for user in users if user.username == data["username"]]
+        if users_username:
+            return {"Message": "This Username is already taken."}, 200
+
+        hashed_password = set_password(data['password'])
+
+        response = jsonify(User(username=data['username'],
+                                password=hashed_password,
+                                email=data['email'],
+                                is_admin=data['is_admin']).create_user())
+
+        return {"Message": "User registration successful."}, 201
+
+        # except:
+        #     return {"Error": "Missing or wrong inputs"}, 400
+
+
 class LoginUser(MethodView):
     """Method to login user"""
     def post(self):
@@ -199,25 +255,26 @@ class LoginUser(MethodView):
         :return:
         """
         user_data = request.get_json(self)
+        # password = request.json.get('password').encode('utf-8')
 
         if not user_data:
             abort(401, "Login credentials missing")
 
         users = User.all_users()
 
-        users_email = [user for user in users if user.email == user_data.data["email"]]
-        users_password = [user for user in users if check_password(user.user_password, user_data.data["password"])]
+        users_email = [user for user in users if user.email == user_data["email"]]
+        users_password = [user for user in users if check_password(user.user_password, user_data["password"])]
 
         if not users_password or not users_email:
-            abort(401, "Wrong User Name or Password")
+            abort(401, "Wrong Username or Password")
 
-        if not user_data.data["email"] or user_data.data["email"].isspace():
-            return {"error": "Email is required"}, 401
+        if not user_data["email"] or user_data["email"].isspace():
+            return {"Error": "Email is missing."}, 401
 
-        elif not user_data.data["password"] or user_data.data["password"].isspace():
-            return {"error": "Password is required"}, 401
+        elif not user_data["password"] or user_data["password"].isspace():
+            return {"Error": "Password is missing."}, 401
 
-        access_token = create_access_token(identity=user_data.data["email"])
+        access_token = create_access_token(identity=user_data["email"])
 
         if access_token:
             response = {
@@ -241,63 +298,6 @@ class LogoutUser(MethodView):
         jti = get_raw_jwt()['jti']
         blacklist.add(jti)
         return {"msg": "Successfully logged out"}, 200
-
-
-class RegisterUser(MethodView):
-    """Method to register a new user"""
-    def post(self):
-        """Registers a new user"""
-        data = request.get_json(self)
-
-        try:
-            schema = {
-                "type": "object",
-                "properties": {
-                    "username": {"type": "string"},
-                    "password": {"type": "string"},
-                    "email": {"type": "string"},
-                },
-                "required": ["username", "password", "email"]
-            }
-
-            validate(data, schema)
-
-            if data is None:
-                return {'Message': 'No User Data Passed'}, 403
-
-            if not data['username']:
-                return {'Message': 'Username Not Provided'}, 403
-
-            if data['username'].isspace():
-                return {'Message': 'Username Not Provided'}, 403
-
-            if not data['password']:
-                return {'Message': 'Password Not Provided'}, 403
-
-            if data['password'].isspace():
-                return {'Message': 'Password Not Provided'}, 403
-
-            users = User.all_users()
-            users_email = [user for user in users if user.email == data["email"]]
-            if users_email:
-                return {"Message": "This Email already exists."}, 200
-
-            users_username = [user for user in users if user.username == data["username"]]
-            if users_username:
-                return {"Message": "This Username is already taken."}, 200
-
-            hashed_password = set_password(data['password'])
-            access_token = create_access_token(identity=data["email"])
-
-            response = jsonify(User(username=data['username'],
-                                    password=hashed_password,
-                                    email=data['email'],
-                                    is_admin=data['is_admin']).create_user())
-
-            return {"Message": "Login successful."}, 201, {"token": access_token}
-
-        except:
-            return {"Error": "Missing or wrong inputs"}, 400
 
 
 class ResetPassword(MethodView):

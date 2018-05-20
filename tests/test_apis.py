@@ -181,8 +181,8 @@ class BookTestCase(unittest.TestCase):
             'author': 'Brian Mecha'
         }
 
-        with self.app.app_context():
-            db.create_all()
+        # with self.app.app_context():
+        #     db.create_all()
 
         # self.book = book.serialize()
 
