@@ -1,9 +1,5 @@
 import unittest
-import os
 import json
-from api.models import User, Book
-from run import app
-import run
 from api import create_app, db
 
 
@@ -25,6 +21,13 @@ class UserTestCase(unittest.TestCase):
             'username': 'brian',
             'password_hash': '111111',
             'is_admin': False
+        }
+
+        self.admin = {
+            'email': 'brainAdmin@gmail.com',
+            'username': 'brianAdmin',
+            'password_hash': '111111',
+            'is_admin': True
         }
 
         # Set app to the current context
@@ -297,6 +300,15 @@ class BookTestCase(unittest.TestCase):
         """
         response = self.client.delete('/api/v2/book/1', content_type="application/json")
         self.assertEqual(response.status_code, 200)
+
+    def tearDown(self):
+        """
+        Return to original state after tests are complete.
+        :return:
+        """
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
 
 
 if __name__ == '__main__':

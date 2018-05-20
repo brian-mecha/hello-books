@@ -22,10 +22,9 @@ from api.models import User, Book
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-users_data = []
-borrowed_books = []
 
 blacklist = set()
+
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
@@ -37,38 +36,36 @@ def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
     return jti in blacklist
 
+
 class SingleBooksApi(MethodView):
     """Method to find, get, delete and edit a book"""
-    def get(self, book_id):
+    @staticmethod
+    def get(book_id):
         """
         Function to find a single book
         :param book_id:
         :return: thisBook
         """
 
-        thisbook = []
-        data = Book.getBook(book_id)
+        data = Book.get_book(book_id)
 
         if not data:
-
             return {'Error': 'Book Does not Exist'}, 404
-
         else:
-
-            thisbook.append(data.serialize())
-            response = jsonify(thisbook)
+            response = jsonify(data.serialize)
             response.status_code = 200
 
         return response
 
-    def delete(self, book_id):
+    @staticmethod
+    def delete(book_id):
         """Function to delete a book"""
-        data = Book.getBook(book_id)
+        data = Book.get_book(book_id)
 
         if not data:
             return {'Error': 'Book Does not Exist'}, 404
 
-        res = jsonify(Book.deleteBook(book_id))
+        res = jsonify(Book.delete_book(book_id))
         res.status_code = 200
         return res
 
@@ -80,13 +77,13 @@ class SingleBooksApi(MethodView):
         """
         data = request.get_json(self)
 
-        book_find = Book.getBook(book_id)
+        book_find = Book.get_book(book_id)
 
         if not book_find:
             return {'Error': 'Book Does not Exist'}, 404
 
         if data is None:
-            response = jsonify({"Message": "No Book Update Infomation Passed"})
+            response = jsonify({"Message": "No Book Update Information Passed"})
             response.status_code = 400
             return response
 
@@ -105,24 +102,21 @@ class SingleBooksApi(MethodView):
         response.status_code = 200
         return response
 
+
 class BooksApi(MethodView):
     """Method to get all books and add a book"""
-    def get(self):
+    @staticmethod
+    def get():
         """
         Function to get all books
         :return:
         """
-        allbooks = []
+        all_books = Book.get_all_books()
 
-        data = Book.get_all_books()
-
-        for book in data:
-            allbooks.append(book.serialize())
-
-        response = jsonify(allbooks)
-        response.status_code = 200
-
-        return response
+        if all_books is None:
+            return {'Message': 'Library is empty.'}, 204
+        else:
+            return {"ALL BOOKS": [book.serialize for book in all_books]}, 200
 
     def post(self):
         """
@@ -131,42 +125,71 @@ class BooksApi(MethodView):
         """
         data = request.get_json(self)
 
-        try:
-            schema = {
-                "type": "object",
-                "properties": {
-                    "title": {"type": "string"},
-                    "desciption": {"type": "string"},
-                    "author": {"type": "string"}
-                },
-                "required": ["description", "title", "author"]
-            }
+        # try:
+        schema = {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string"},
+                "description": {"type": "string"},
+                "author": {"type": "string"}
+            },
+            "required": ["description", "title", "author"]
+        }
 
-            validate(data, schema)
+        validate(data, schema)
 
-            valid_book = BookSchema().load(data)
+        valid_book = BookSchema().load(data)
 
-            if not valid_book.data["title"] or valid_book.data["title"].isspace():
-                return {'Error': 'Book must have a Title'}, 403
+        if not valid_book.data["title"] or valid_book.data["title"].isspace():
+            return {'Error': 'Book must have a Title'}, 403
 
-            elif not valid_book.data["description"] or valid_book.data["description"].isspace():
-                return {'Error': 'Book must have a Description'}, 403
+        elif not valid_book.data["description"] or valid_book.data["description"].isspace():
+            return {'Error': 'Book must have a Description'}, 403
 
-            elif not valid_book.data["author"] or valid_book.data["author"].isspace():
-                return {'Error': 'Book must have an Author'}, 403
+        elif not valid_book.data["author"] or valid_book.data["author"].isspace():
+            return {'Error': 'Book must have an Author'}, 403
 
-            else:
+        else:
 
-                new_book = Book(title=valid_book.data["title"],
-                                description=valid_book.data["description"],
-                                author=valid_book.data["author"])
+            new_book = Book(title=valid_book.data["title"],
+                            description=valid_book.data["description"],
+                            author=valid_book.data["author"])
 
-                new_book.createBook()
+            new_book.create_book()
 
-            return jsonify({'Success': 'Book added successfully.'})
+        return jsonify({'Success': 'Book added successfully.'})
 
-        except:
-            return {"Error": "Missing or wrong inputs"}, 400
+        # except:
+        #     return {"Error": "Missing or wrong inputs"}, 400
+
+
+class UserBorrowingHistory(MethodView):
+    """
+    Method to show the users borrowing history
+    """
+    @staticmethod
+    def get():
+        history = BorrowingHistory.user_borrowing_history()
+
+        if history is None:
+            return {"Message": "User doesn't have any borrowing history."}, 204
+        # else:
+        return {"BORROWING HISTORY": [book.serialize for book in history]}, 200
+
+
+class UserUnreturnedBooks(MethodView):
+    """
+    Method to show all bowwowed books not returned by user
+    """
+    @staticmethod
+    def get():
+        unreturned = BorrowingHistory.unreturned_books_by_user()
+
+        if unreturned is None:
+            return {"Message": "User doesn't have unreturned Books"}, 204
+
+        return {"UNRETURNED BOOKS": [book.serialize for book in unreturned]}, 200
+
 
 class LoginUser(MethodView):
     """Method to login user"""
@@ -175,32 +198,30 @@ class LoginUser(MethodView):
         Function to login user
         :return:
         """
-        user = request.get_json(self)
+        user_data = request.get_json(self)
 
-        if not user:
+        if not user_data:
             abort(401, "Login credentials missing")
 
-        valid_user = UserSchema().load(user)
+        users = User.all_users()
 
-        users_surname = [user for user in users if user.username == valid_user.data["username"]]
-        users_password = [user for user in users if check_password(user.password, valid_user.data["password"])]
+        users_email = [user for user in users if user.email == user_data.data["email"]]
+        users_password = [user for user in users if check_password(user.user_password, user_data.data["password"])]
 
-        if not users_password or not users_surname:
+        if not users_password or not users_email:
             abort(401, "Wrong User Name or Password")
 
-        if not valid_user.data["username"] or valid_user.data["username"].isspace():
-            return {"error": "Username is required"}, 401
+        if not user_data.data["email"] or user_data.data["email"].isspace():
+            return {"error": "Email is required"}, 401
 
-        elif not valid_user.data["password"] or valid_user.data["password"].isspace():
+        elif not user_data.data["password"] or user_data.data["password"].isspace():
             return {"error": "Password is required"}, 401
 
-
-
-        access_token = create_access_token(identity=valid_user.data["username"])
+        access_token = create_access_token(identity=user_data.data["email"])
 
         if access_token:
             response = {
-                "message": "You logged in successfully",
+                "message": "You logged in successfully.",
                 "access_token": access_token
             }
 
@@ -221,6 +242,7 @@ class LogoutUser(MethodView):
         blacklist.add(jti)
         return {"msg": "Successfully logged out"}, 200
 
+
 class RegisterUser(MethodView):
     """Method to register a new user"""
     def post(self):
@@ -233,8 +255,9 @@ class RegisterUser(MethodView):
                 "properties": {
                     "username": {"type": "string"},
                     "password": {"type": "string"},
+                    "email": {"type": "string"},
                 },
-                "required": ["username", "password"]
+                "required": ["username", "password", "email"]
             }
 
             validate(data, schema)
@@ -254,17 +277,28 @@ class RegisterUser(MethodView):
             if data['password'].isspace():
                 return {'Message': 'Password Not Provided'}, 403
 
-            hashed_password = set_password(data['password'])
-            access_token = create_access_token(identity=data["username"])
+            users = User.all_users()
+            users_email = [user for user in users if user.email == data["email"]]
+            if users_email:
+                return {"Message": "This Email already exists."}, 200
 
-            response = jsonify(User(username=data['username'], user_id=self, password=hashed_password, admin=data).CreateUser())
-            response.status_code = 201
-            response.token = access_token
-            return response
+            users_username = [user for user in users if user.username == data["username"]]
+            if users_username:
+                return {"Message": "This Username is already taken."}, 200
+
+            hashed_password = set_password(data['password'])
+            access_token = create_access_token(identity=data["email"])
+
+            response = jsonify(User(username=data['username'],
+                                    password=hashed_password,
+                                    email=data['email'],
+                                    is_admin=data['is_admin']).create_user())
+
+            return {"Message": "Login successful."}, 201, {"token": access_token}
 
         except:
-
             return {"Error": "Missing or wrong inputs"}, 400
+
 
 class ResetPassword(MethodView):
     """
@@ -277,6 +311,7 @@ class ResetPassword(MethodView):
         :return:
         """
         userdata = request.get_json()
+        users = User.all_users()
         try:
 
             valid_user = UserSchema().load(userdata)
@@ -293,7 +328,7 @@ class ResetPassword(MethodView):
                 users_data.append(valid_user.data)
                 access_token = create_access_token(identity=userdata["username"])
 
-                return {"Success": "Password reset successful"}, 200, {"jwt": access_token}
+                return {"Success": "Password reset successful."}, 200, {"jwt": access_token}
 
         except ValidationError as err:
             abort(401, err.messages)
@@ -310,13 +345,39 @@ class BorrowBook(MethodView):
         :param book_id:
         :return:
         """
+        books = Book.get_all_books()
         book_is_present = [book for book in books if book.book_id == book_id]
         if book_is_present is None:
             abort(404, "Book Does Not Exist")
-        borrowed_book = {}
-        borrowed_book["user_username"] = get_jwt_identity()
-        borrowed_book["book_id"] = book_id
-        return jsonify("Book Borrowed Successfuly")
+
+        available_books = Book.get_book_available_for_borrowing()
+        book_is_available = [book for book in available_books if book.book_id == book_id]
+        if book_is_available is None:
+            abort(404, "This Book is not available for borrowing.")
+
+        else:
+            user_id = request.json.get('id')
+            due_date = datetime.now() + timedelta(days=6)
+            BorrowingHistory(user_id=user_id, book_id=book_id, due_date=due_date).borrow_book()
+
+            book = Book.get_book(book_id)
+            book.availability = False
+            book.create_book()
+
+            return {"Success": "Book borrowed Successfully."}, 200
+
+    @staticmethod
+    def put(book_id):
+        book = BorrowingHistory.get_book(book_id)
+
+        if book.availability is True:
+            return {"Message": "This book is not borrowed"}, 200
+
+        book.availability = True
+        book.create_book()
+
+        return {"Success": "Boom returned successfully."}, 200
+
 
 @jwt.expired_token_loader
 def my_expired_token_callback():
@@ -328,6 +389,7 @@ def my_expired_token_callback():
     access = create_access_token(identity=jwt_data)
     return jsonify(access), 200
 
+
 def set_password(password):
     """
     Hashes the password
@@ -336,6 +398,7 @@ def set_password(password):
     """
     password = bcrypt.generate_password_hash(password).decode('utf-8')
     return password
+
 
 def check_password(hashed_password, password):
     """

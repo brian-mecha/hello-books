@@ -1,11 +1,13 @@
 from marshmallow import Schema, fields
 
+
 class UserSchema(Schema):
     username = fields.Str()
     password=fields.Str()
 
     def __repr__(self):
         return self.name
+
 
 class BookSchema(Schema):
     title = fields.Str()

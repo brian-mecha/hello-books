@@ -17,9 +17,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(60), index=True, unique=True)
     username = db.Column(db.String(60), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
+    user_password = db.Column(db.String(128))
     is_admin = db.Column(db.Boolean, default=False)
-    # created_at = db.Column(db.Datetime, default=db.func.current_timestamp())
+    created_at = db.Column(db.Date, default=db.func.current_timestamp())
 
     @property
     def password(self):
@@ -36,7 +36,7 @@ class User(db.Model):
         :param password:
         :return:
         """
-        self.password_hash = generate_password_hash(password)
+        self.user_password = generate_password_hash(password)
 
     def check_password(self, password):
         """
@@ -44,7 +44,7 @@ class User(db.Model):
         :param password:
         :return:
         """
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.user_password, password)
 
     def is_administrator(self):
         return self.is_admin is True
@@ -57,7 +57,15 @@ class User(db.Model):
     def all_users():
         return User.query.all()
 
+    @staticmethod
+    def get_user_by_id(user_id):
+        return User.query.filter_by(id=user_id).first()
+
     def reset_password(self):
+        """
+        Function to reset user password
+        :return:
+        """
         pass
 
     def __repr__(self):
@@ -94,6 +102,10 @@ class Book(db.Model):
     def get_all_books():
         return Book.query.all()
 
+    @staticmethod
+    def get_book_available_for_borrowing():
+        return Book.query.filter_by(availability=True).all()
+
     def __repr__(self):
         return '<Book: {}>'.format(self.book_id)
 
@@ -121,18 +133,29 @@ class BorrowingHistory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
     date_borrowed = db.Column(db.Date, nullable=False, default=datetime.today())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
+    returned = db.Column(db.Boolean, default=False)
+    returned_date = db.Column(db.Boolean, default=False)
 
     @staticmethod
     def user_borrowing_history():
-        return BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"), BorrowingHistory.date_borrowed.label("date_borrowed"), BorrowingHistory.due_date.label("due_date")).filter(BorrowingHistory.user_id == current_user.id).all()
+        # hist = BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"),
+        #                               BorrowingHistory.date_borrowed.label("date_borrowed"),
+        #                               BorrowingHistory.due_date.label("due_date")).filter(
+        #     BorrowingHistory.user_id == current_user.id).all()
+        hist = BorrowingHistory.query.filter_by(user_id=current_user.id).all()
+        return hist
 
     @staticmethod
     def unreturned_books_by_user():
-        return BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"), BorrowingHistory.date_borrowed.label("date_borrowed"), BorrowingHistory.due_date.label("due_date")).filter(BorrowingHistory.user_id == current_user.id, Book.availability is False).all()
+        return BorrowingHistory.query.filter_by(returned=False).all()
 
     def borrow_book(self):
         db.session.add(self)
         db.session.commit()
+
+    @staticmethod
+    def get_book(book_id):
+        return BorrowingHistory.query.filter_by(book_id=book_id, returned=False).first()
 
 
 class ActiveTokens(db.Model):
@@ -159,7 +182,7 @@ class ActiveTokens(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def is_expired(self):
+    def token_is_expired(self):
         return (datetime.now() - self.time_created) > timedelta(minutes=15)
 
     @staticmethod
