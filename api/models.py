@@ -1,11 +1,15 @@
 """
 Contains models used in our apps.
 """
-
-from api import db
+# from api import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 from flask_login import current_user
+# from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
+
+# Initializes Database
+db = SQLAlchemy()
 
 
 class User(db.Model):
@@ -21,22 +25,27 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.Date, default=db.func.current_timestamp())
 
-    @property
-    def password(self):
-        """
-        Prevent access to the password
-        :return:
-        """
-        raise AttributeError('Password not accessible')
+    def __init__(self, username, user_password, email, is_admin):
+        self.username = username
+        self.email = email
+        self.user_password = user_password
+        self.is_admin = is_admin
 
-    @password.setter
-    def password(self, password):
+    # @property
+    # def password(self):
+    #     """
+    #     Prevent access to the password
+    #     :return:
+    #     """
+    #     raise AttributeError('Password not accessible')
+
+    def set_password(self, password):
         """
         Hashes the password
         :param password:
         :return:
         """
-        self.user_password = generate_password_hash(password)
+        return str(generate_password_hash(password))
 
     def check_password(self, password):
         """
@@ -44,7 +53,8 @@ class User(db.Model):
         :param password:
         :return:
         """
-        return check_password_hash(self.user_password, password)
+        user_password = str(generate_password_hash(password))
+        return check_password_hash(user_password, password)
 
     def is_administrator(self):
         return self.is_admin is True
@@ -64,13 +74,6 @@ class User(db.Model):
     @staticmethod
     def get_user_by_email(email):
         return User.query.filter_by(email=email).first()
-
-    def reset_password(self):
-        """
-        Function to reset user password
-        :return:
-        """
-        pass
 
     def __repr__(self):
         return '<User: {}'.format(self.username)
@@ -134,6 +137,9 @@ class BorrowingHistory(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     book_id = db.Column(db.Integer, db.ForeignKey('books.book_id'), nullable=False, default=1)
+    book_title = db.Column(db.String(60), nullable=False)
+    book_author = db.Column(db.String(60), nullable=False)
+    book_description = db.Column(db.String(60), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
     date_borrowed = db.Column(db.Date, nullable=False, default=datetime.today())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
@@ -187,7 +193,7 @@ class ActiveTokens(db.Model):
         db.session.commit()
 
     def token_is_expired(self):
-        return (datetime.now() - self.time_created) > timedelta(minutes=15)
+        return (datetime.now() - self.time_created) > timedelta(minutes=60)
 
     @staticmethod
     def find_user_with_token(user_email):

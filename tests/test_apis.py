@@ -32,7 +32,12 @@ class UserTestCase(unittest.TestCase):
 
         # Set app to the current context
         with self.app.app_context():
+            # db.drop_all()
             db.create_all()
+
+    def test_sanity(self):
+        """Sanity check"""
+        self.assertEqual(1, 1)
 
     def test_user_registration(self):
         """
@@ -40,16 +45,16 @@ class UserTestCase(unittest.TestCase):
         :param self:
         :return:
         """
-        response = self.client.post('/api/v2/auth/register', data=self.user, content_type='application/json')
+        response = self.client.post('/api/v2/auth/register', data=json.dumps(self.admin),
+                                    content_type='application/json')
         self.assertEqual(response.status_code, 201)
-        # self.assertIn('Go to Borabora', str(response.data))
 
     def test_user_registration_duplicate(self):
         """
         Tests for duplicate user registration
         :return:
         """
-        response = self.client.post('/api/v2/auth/register', data=self.user, content_type='application/json')
+        response = self.client().post('/api/v2/auth/register', data=self.user, content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
         self.assertIn("This user already exists", str(response.data))

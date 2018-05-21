@@ -4,6 +4,7 @@ class Config(object):
     """
     DEBUG = False
     TESTING = False
+    ERROR_404_HELP = False
     SQLALCHEMY_DATABASE_URI = 'postgresql://brianmoitui:mozart@localhost:5432/hello_books'
 
 
