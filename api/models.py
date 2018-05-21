@@ -39,7 +39,8 @@ class User(db.Model):
     #     """
     #     raise AttributeError('Password not accessible')
 
-    def set_password(self, password):
+    @staticmethod
+    def set_password(password):
         """
         Hashes the password
         :param password:
@@ -47,7 +48,8 @@ class User(db.Model):
         """
         return str(generate_password_hash(password))
 
-    def check_password(self, password):
+    @staticmethod
+    def check_password(password):
         """
         Checks whether hashed password matches the actual password
         :param password:
