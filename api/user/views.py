@@ -1,31 +1,36 @@
-from flask import jsonify, request, abort
-from jsonschema import validate
-from flask_jwt_extended import create_access_token, get_raw_jwt
+import re
 
-from . import user
+from flask import jsonify, request, abort, Blueprint
+from jsonschema import validate
+from flask_jwt_extended import create_access_token, get_raw_jwt, get_jwt_identity, jwt_required
+
 from api.models import User, ActiveTokens, RevokedTokens
+from . import user
 
 
 @user.route('/api/v2/auth/register', methods=['POST'])
-def register_user(self):
+def register_user():
     """
     Registers a new user
     :return:
     """
-    data = request.get_json(self)
+    data = request.get_json()
 
-    # try:
-    schema = {
-        "type": "object",
-        "properties": {
-            "username": {"type": "string"},
-            "password": {"type": "string"},
-            "email": {"type": "string"},
-        },
-        "required": ["username", "password", "email"]
-    }
+    try:
+        schema = {
+            "type": "object",
+            "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"},
+                "email": {"type": "string"},
+                "is_admin": {"type": "boolean"},
+            },
+            "required": ["username", "password", "email"]
+        }
 
-    validate(data, schema)
+        validate(data, schema)
+    except:
+        return {"Error": "Missing or wrong inputs"}, 400
 
     if data is None:
         return {'Message': 'No User Data Passed'}, 403
@@ -41,6 +46,13 @@ def register_user(self):
 
     if data['password'].isspace():
         return {'Message': 'Password Not Provided'}, 403
+
+    valid_email = re.match(
+        "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
+        data["email"].strip())
+
+    if valid_email is None:
+        return jsonify({'error': 'Please enter a valid Email!'}), 400
 
     users = User.all_users()
     users_email = [user for user in users if user.email == data["email"]]
@@ -61,17 +73,14 @@ def register_user(self):
 
     return {"Message": "User registration successful."}, 201
 
-    # except:
-    #     return {"Error": "Missing or wrong inputs"}, 400
-
 
 @user.route('/api/v2/auth/login', methods=['POST'])
-def login_user(self):
+def login_user():
     """
     Function to login user
     :return:
     """
-    user_data = request.get_json(self)
+    user_data = request.get_json()
     # password = request.json.get('password').encode('utf-8')
 
     if not user_data:
@@ -98,7 +107,7 @@ def login_user(self):
         except:
             return {"message": "User is already logged in."}, 200
 
-        response = {"message": "You logged in successfully."}
+        response = {"message": "You logged in successfully.", "token": access_token}
 
         return response, 200, {"access_token": access_token}
     else:
@@ -106,17 +115,20 @@ def login_user(self):
 
 
 @user.route('/api/v2/auth/logout', methods=['POST'])
+@jwt_required
 def logout_user():
     """
     Logs out the logged in user
     :return:
     """
     user_email = request.json.get('email')
-    logged_in_user = get_raw_jwt()
-    jti = get_raw_jwt()['jti']
 
     if user_email is None:
         return {"Email is required to logout"}, 403
+
+    logged_in_user = get_jwt_identity()
+
+    jti = get_raw_jwt()['jti']
 
     if logged_in_user == user_email and not RevokedTokens.is_jti_blacklisted(jti):
         revoke_token = RevokedTokens(jti=jti)

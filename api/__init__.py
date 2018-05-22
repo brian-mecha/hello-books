@@ -12,7 +12,7 @@ jwt = JWTManager()
 
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=True)
-    app.config.from_object(config_app[config_name])
+    app.config.from_object(config_app['development'])
     # app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
@@ -20,10 +20,10 @@ def create_app(config_name):
     from .admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint)
 
-    from .book import admin as book_blueprint
+    from .book import book as book_blueprint
     app.register_blueprint(book_blueprint)
 
-    from .user import admin as user_blueprint
+    from .user import user as user_blueprint
     app.register_blueprint(user_blueprint)
 
     app.config['SECRET_KEY'] = '\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'

@@ -1,11 +1,8 @@
 """
 Contains models used in our apps.
 """
-# from api import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
-from flask_login import current_user
-# from flask.ext.sqlalchemy import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
 
 # Initializes Database
@@ -146,15 +143,11 @@ class BorrowingHistory(db.Model):
     date_borrowed = db.Column(db.Date, nullable=False, default=datetime.today())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
     returned = db.Column(db.Boolean, default=False)
-    returned_date = db.Column(db.Boolean, default=False)
+    returned_date = db.Column(db.DateTime, default=datetime.today())
 
     @staticmethod
     def user_borrowing_history():
-        # hist = BorrowingHistory.query(Book.title.label("title"), Book.author.label("author"),
-        #                               BorrowingHistory.date_borrowed.label("date_borrowed"),
-        #                               BorrowingHistory.due_date.label("due_date")).filter(
-        #     BorrowingHistory.user_id == current_user.id).all()
-        hist = BorrowingHistory.query.filter_by(user_id=current_user.id).all()
+        hist = BorrowingHistory.query.all()
         return hist
 
     @staticmethod
@@ -165,9 +158,27 @@ class BorrowingHistory(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def __repr__(self):
+        return '<Borrowing History: {}>'.format(self.book_id)
+
     @staticmethod
     def get_book(book_id):
         return BorrowingHistory.query.filter_by(book_id=book_id, returned=False).first()
+
+    @property
+    def serialize(self):
+        """Serialize."""
+        return {
+            'book_id': self.book_id,
+            'book_title': self.book_title,
+            'book_author': self.book_author,
+            'book_description': self.book_description,
+            'user_id': self.user_id,
+            'date_borrowed': self.date_borrowed,
+            'due_date': self.due_date,
+            'returned': self.returned,
+            'returned_date': self.returned_date
+        }
 
 
 class ActiveTokens(db.Model):

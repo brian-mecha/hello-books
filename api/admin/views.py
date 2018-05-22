@@ -2,8 +2,8 @@ from flask import jsonify, request
 from jsonschema import validate
 from flask_jwt_extended import get_raw_jwt, get_jwt_identity, jwt_required
 
-from . import admin
 from api.models import User, Book, RevokedTokens
+from . import admin
 
 
 def verify_token_and_if_user_is_admin():
@@ -35,14 +35,21 @@ def create_book():
             "properties": {
                 "title": {"type": "string"},
                 "description": {"type": "string"},
-                "author": {"type": "string"}
+                "author": {"type": "string"},
+                "availability": {"type": "boolean"}
             },
             "required": ["description", "title", "author"]
         }
+        validate(data, schema)
+
     except:
         return {"Error": "Missing or wrong inputs"}, 400
 
-    validate(data, schema)
+    books = Book.get_all_books()
+
+    present = [book for book in books if book.title == data["title"]]
+    if present:
+        return {'Error': 'Book with that title already exists.'}, 403
 
     if not data["title"] or data["title"].isspace():
         return {'Error': 'Book must have a Title'}, 403
@@ -57,13 +64,11 @@ def create_book():
 
         new_book = Book(title=data["title"],
                         description=data["description"],
+                        availability=data["availability"],
                         author=data["author"])
         new_book.create_book()
 
     return jsonify({'Success': 'Book added successfully.'})
-
-    # except:
-    #     return {"Error": "Missing or wrong inputs"}, 400
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['DELETE'])

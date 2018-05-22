@@ -1,4 +1,6 @@
 from flask import Blueprint
+
+user = Blueprint('user', __name__)
+
 from . import views
 
-admin = Blueprint('user', __name__)

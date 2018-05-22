@@ -1,11 +1,11 @@
 from flask import jsonify, request, abort
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from api.models import Book, User, BorrowingHistory, datetime, timedelta
 from . import book
-from api.models import Book, BorrowingHistory, datetime, timedelta
 
 
-@book.route('/api/v2/users/books', methods=['GET'])
+@book.route('/api/v2/books', methods=['GET'])
 def get_all_books():
     """
     Function to return all books.
@@ -47,12 +47,12 @@ def borrow_book(book_id):
     """
     book_is_present = Book.get_book(book_id)
     if not book_is_present:
-        abort(404, "Book Does Not Exist")
+        return {"Error": "Book does not exist"}, 403
 
     available_books = Book.get_book_available_for_borrowing()
     book_is_available = [book for book in available_books if book.book_id == book_id]
     if not book_is_available:
-        abort(404, "This Book is not available for borrowing.")
+        return {"Error": "This Book is not available for borrowing."}, 403
 
     else:
         user_id = request.json.get('id')
@@ -73,13 +73,16 @@ def borrow_book(book_id):
 
 @book.route('/api/v2/users/book/<int:book_id>', methods=['PUT'])
 @jwt_required
-def returned_book(book_id):
+def return_book(book_id):
     """
     Function to return a borrowed book
     :param book_id:
     :return:
     """
     book = Book.get_book(book_id)
+
+    if book is None:
+        return {"Error": "Book does not exist."}, 403
 
     if book.availability is True:
         return {"Message": "This book is not borrowed."}, 200
@@ -96,21 +99,27 @@ def returned_book(book_id):
 
 @book.route('/api/v2/users/books?returned=false', methods=['GET'])
 @jwt_required
-def unreturned_books():
+def unreturned_books_by_user():
     unreturned = BorrowingHistory.unreturned_books_by_user()
+
+    logged_user_email = get_jwt_identity()
+    logged_user = User.get_user_by_email(logged_user_email)
 
     if unreturned is None:
         return {"Message": "User doesn't have unreturned Books"}, 204
 
-    return {"UNRETURNED BOOKS": [book.serialize for book in unreturned]}, 200
+    return {"UNRETURNED BOOKS BY USER": [book.serialize for book in unreturned if book.user_id == logged_user.id]}, 200
 
 
 @book.route('/api/v2/users/books', methods=['GET'])
 @jwt_required
-def borrowing_history():
+def user_borrowing_history():
     history = BorrowingHistory.user_borrowing_history()
 
     if history is None:
         return {"Message": "User doesn't have any borrowing history."}, 204
-    # else:
-    return {"BORROWING HISTORY": [book.serialize for book in history]}, 200
+
+    logged_user_email = get_jwt_identity()
+    logged_user = User.get_user_by_email(logged_user_email)
+
+    return jsonify({"USER BORROWING HISTORY": [book.serialize for book in history if book.user_id == logged_user.id]}), 200

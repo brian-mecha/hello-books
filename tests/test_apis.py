@@ -32,7 +32,6 @@ class UserTestCase(unittest.TestCase):
 
         # Set app to the current context
         with self.app.app_context():
-            # db.drop_all()
             db.create_all()
 
     def test_sanity(self):
@@ -54,7 +53,7 @@ class UserTestCase(unittest.TestCase):
         Tests for duplicate user registration
         :return:
         """
-        response = self.client().post('/api/v2/auth/register', data=self.user, content_type='application/json')
+        response = self.client.post('/api/v2/auth/register', data=self.user, content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
         self.assertIn("This user already exists", str(response.data))
@@ -117,6 +116,25 @@ class UserTestCase(unittest.TestCase):
         response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
 
         self.assertEqual(response.status_code, 403)
+
+    def user_login(self):
+        """
+        Tests whether a user can login
+        :return:
+        """
+        # Login a user
+        response = self.client.post(
+            '/api/v2/auth/login', data=json.dumps(self.user),
+            headers={'content-type': 'application/json'})
+        result = json.loads(response.data.decode())
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(result)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Successfully login', str(response.data),
+                      msg="Login successful")
+        self.assertIn('access_token', str(response.data),
+                      msg="Access token issued")
 
     def test_unregistered_user_login(self):
         """
@@ -224,6 +242,9 @@ class BookTestCase(unittest.TestCase):
         """
         book = {"title": "BOOTCAMP", "description": "", "author": "Mecha B"}
         response = self.client.post('/api/v2/books', data=json.dumps(book), content_type="application/json")
+        print(">>>>>>>>>>>>>>>>>>>>>>")
+        print(response.data)
+        print(">>>>>>>>>>>>>>>>>>>>>>")
         return self.assertEqual(response.status_code, 403)
 
     def test_add_book_with_description_as_space(self):
@@ -308,7 +329,7 @@ class BookTestCase(unittest.TestCase):
 
     def tearDown(self):
         """
-        Return to original state after tests are complete.
+        Drop all tables after tests are complete.
         :return:
         """
         with self.app.app_context():
