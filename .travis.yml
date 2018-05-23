@@ -21,7 +21,6 @@ apt:
 sudo: true
 
 before_script:
-  - cp config/database.yml.travis config/database.yml
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -U postgres -c "create extension postgis"
 
