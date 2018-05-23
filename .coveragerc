@@ -19,9 +19,7 @@ omit=
     *hmac.py
     *run.py
     *api/models.py
-    *api/routes.py
-    *api/__init.py__.py
-    *api/dataSchema.py
+    *api/__init__.py
 
 
 

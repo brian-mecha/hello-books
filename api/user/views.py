@@ -81,10 +81,15 @@ def login_user():
     :return:
     """
     user_data = request.get_json()
-    # password = request.json.get('password').encode('utf-8')
 
     if not user_data:
-        abort(401, "Login credentials missing")
+        return {"Error": "Login credentials missing"}, 401
+
+    if user_data["email"] is None or user_data["email"].isspace():
+        return {"Error": "Email is missing."}, 401
+
+    elif not user_data["password"] or user_data["password"].isspace():
+        return {"Error": "Password is missing."}, 401
 
     user = User.get_user_by_email(user_data["email"])
 
@@ -92,12 +97,6 @@ def login_user():
         abort(401, "User does not exist")
     if not User.check_password(user_data["password"]):
         abort(200, "Wrong Username or Password")
-
-    if not user_data["email"] or user_data["email"].isspace():
-        return {"Error": "Email is missing."}, 401
-
-    elif not user_data["password"] or user_data["password"].isspace():
-        return {"Error": "Password is missing."}, 401
 
     access_token = create_access_token(identity=user_data["email"])
 
@@ -107,7 +106,7 @@ def login_user():
         except:
             return {"message": "User is already logged in."}, 200
 
-        response = {"message": "You logged in successfully.", "token": access_token}
+        response = {"message": "You logged in successfully.", "access_token": access_token}
 
         return response, 200, {"access_token": access_token}
     else:

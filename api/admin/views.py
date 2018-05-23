@@ -68,7 +68,7 @@ def create_book():
                         author=data["author"])
         new_book.create_book()
 
-    return jsonify({'Success': 'Book added successfully.'})
+    return jsonify({'Success': 'Book added successfully.'}), 201
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['DELETE'])
