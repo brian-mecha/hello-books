@@ -21,7 +21,6 @@ apt:
 sudo: true
 
 before_script:
-  - sudo apt-get install postgresql-10.3-postgis-2.3 postgis -y -q
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -U postgres -c "create extension postgis"
 
