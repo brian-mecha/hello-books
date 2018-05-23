@@ -4,6 +4,7 @@ from flask_jwt_extended import get_raw_jwt, get_jwt_identity, jwt_required
 
 from api.models import User, Book, RevokedTokens
 from . import admin
+from api.models import db
 
 
 def verify_token_and_if_user_is_admin():
@@ -72,6 +73,7 @@ def create_book():
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['DELETE'])
+@jwt_required
 def delete_book(book_id):
     """Function to delete a book"""
     admin_check = verify_token_and_if_user_is_admin()
@@ -83,12 +85,13 @@ def delete_book(book_id):
     if not data:
         return {'Error': 'Book Does not Exist'}, 404
 
-    res = jsonify(Book.delete_book(book_id))
-    res.status_code = 200
-    return res
+    jsonify(Book.delete_book(data))
+
+    return jsonify({'Success': 'Book deleted successfully.'}), 200
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['PUT'])
+@jwt_required
 def edit_put(book_id):
     """
     Function to update a book
@@ -100,6 +103,22 @@ def edit_put(book_id):
         return admin_check
 
     data = request.get_json()
+
+    try:
+        schema = {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string"},
+                "description": {"type": "string"},
+                "author": {"type": "string"},
+                "availability": {"type": "boolean"}
+            },
+            "required": ["description", "title", "author", "availability"]
+        }
+        validate(data, schema)
+
+    except:
+        return {"Error": "Missing or wrong inputs"}, 400
 
     book_find = Book.get_book(book_id)
 
@@ -120,6 +139,14 @@ def edit_put(book_id):
     elif not data["author"] or data["author"].isspace():
         return {'Error': 'Book must have an Author'}, 403
 
-    response = jsonify(Book.updateBook(book_id=book_id, data=data))
-    response.status_code = 200
-    return response
+    elif not data["availability"]:
+        return {'Error': 'Book status is not provided.'}, 403
+
+    if book_find:
+        book_find.title = data["title"]
+        book_find.description = data["description"]
+        book_find.author = data["author"]
+        book_find.availability = data["availability"]
+        db.session.commit()
+
+    return jsonify({'Success': 'Book updated successfully.'}), 200

@@ -3,6 +3,7 @@ import json
 
 from api import create_app, db
 from tests.test_user import UserTestCase
+from tests.test_admin import AdminTestCase
 
 
 class BookTestCase(unittest.TestCase):
@@ -24,6 +25,13 @@ class BookTestCase(unittest.TestCase):
             'is_admin': False
         }
 
+        self.admin = {
+            'email': 'brainAdmin@gmail.com',
+            'username': 'brianAdmin',
+            'password': '111111',
+            'is_admin': True
+        }
+
         self.book = {
             'title': 'Kamusi ya Methali',
             'description': 'A collection of swahili sayings',
@@ -33,21 +41,6 @@ class BookTestCase(unittest.TestCase):
 
         with self.app.app_context():
             db.create_all()
-
-    def register_login_user(self):
-        # Register a new admin
-        self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
-                         headers={'content-type': 'application/json'})
-
-        # Login a admin
-        login_response = self.client.post(
-            '/api/v2/auth/login', data=json.dumps(self.user),
-            headers={'content-type': 'application/json'})
-        # Get admin access token
-        access_token = json.loads(
-            login_response.get_data().decode('utf-8'))['access_token']
-
-        return access_token
 
     def test_books(self):
         """
@@ -64,8 +57,6 @@ class BookTestCase(unittest.TestCase):
         """
 
         response = self.client.get('/api/v2/book/1', content_type="application/json")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(response.data)
         self.assertEqual(response.status_code, 404)
         self.assertIn("Book Does not Exist", str(response.data))
 
@@ -76,9 +67,59 @@ class BookTestCase(unittest.TestCase):
         """
         access_token = UserTestCase.register_login_user(self)
 
+        # Test to borrow a non-existant book
         response = self.client.post('/api/v2/users/book/1',
                                     headers={'content-type': 'application/json',
                                              'Authorization': 'Bearer {}'.format(access_token)})
         self.assertEqual(response.status_code, 403)
         self.assertIn("Book does not exist", str(response.data))
+
+    def test_borrow_book_with_token(self):
+        admin_access_token = AdminTestCase.register_login_admin(self)
+        access_token = UserTestCase.register_login_user(self)
+
+        # Admin user adds a book
+        response = self.client.post('/api/v2/books', data=json.dumps(self.book),
+                                    headers={'content-type': 'application/json',
+                                             'Authorization': 'Bearer {}'.format(admin_access_token)})
+        self.assertEqual(response.status_code, 201)
+        self.assertIn('Book added successfully.', str(response.data))
+
+        # Test to test whether a logged in user can borrow a book
+        response = self.client.post('/api/v2/users/book/1', data=json.dumps(self.book),
+                                    headers={'content-type': 'application/json',
+                                             'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Book borrowed Successfully.", str(response.data))
+
+        # Test to test whether a logged in user can return a borrowed book
+        response = self.client.put('/api/v2/users/book/1', data=json.dumps(self.book),
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Book returned successfully.", str(response.data))
+
+    def test_borrowing_history(self):
+        access_token = UserTestCase.register_login_user(self)
+
+        response = self.client.get('/api/v2/users/books',
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)})
+
+        self.assertEqual(response.status_code, 200)
+
+    def tearDown(self):
+        """
+        Drop all tables after tests are complete.
+        :return:
+        """
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
 

@@ -29,7 +29,7 @@ class UserTestCase(unittest.TestCase):
             db.create_all()
 
     def register_login_user(self):
-        # Register a new admin
+        # Register and login a new admin
         self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
                          headers={'content-type': 'application/json'})
 
@@ -55,7 +55,6 @@ class UserTestCase(unittest.TestCase):
         """
         response = self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
                                     content_type='application/json')
-        print(">>>>>>>>>>>>>>>>>>>>>>", response.data)
         self.assertEqual(response.status_code, 201)
 
     def test_user_registration_duplicate(self):
@@ -162,26 +161,23 @@ class UserTestCase(unittest.TestCase):
         Tests whether a user can login
         :return:
         """
+        user = {
+            'email': 'brainyu@gmail.com',
+            'username': 'brianu',
+            'password': '111111',
+            'is_admin': False
+        }
 
-        response = self.client.post('/api/v2/auth/logout', data=json.dumps(self.user), content_type="application/json")
+        response = self.client.post('/api/v2/auth/logout', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
         self.assertIn("Missing Authorization Header", str(response.data))
-
-    def test_login_bad_request(self):
-        """
-        Tests Login API endpoint when an empty object is passed
-        """
-        user = {}
-        response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("Login credentials missing", str(response.data))
 
     def test_login_no_email(self):
         """
         Tests Login API endpoint when email is not provided
         """
 
-        user = {"email": "", "password": "12344567"}
+        user = {"email": "", "password": "yuyyuuuu"}
         response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
 
         self.assertEqual(response.status_code, 401)
@@ -195,6 +191,7 @@ class UserTestCase(unittest.TestCase):
         user = {"email": "mecha@gmail.com", "password": ""}
         response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
+        self.assertIn("Password is missing.", str(response.data))
 
     def tearDown(self):
         """
