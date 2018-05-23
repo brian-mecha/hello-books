@@ -1,5 +1,6 @@
 import unittest
 import json
+
 from api import create_app, db
 
 
@@ -136,9 +137,6 @@ class UserTestCase(unittest.TestCase):
         response = self.client.post(
             '/api/v2/auth/login', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
-        # result = json.loads(response.data.decode())
-        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        # print(result)
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('Successfully login', str(response.data),
@@ -192,6 +190,16 @@ class UserTestCase(unittest.TestCase):
         response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
         self.assertEqual(response.status_code, 401)
         self.assertIn("Password is missing.", str(response.data))
+
+    def user_logout(self):
+        access_token = self.register_login_user()
+
+        response = self.client.post('/api/v2/auth/logout',
+                                    headers={'content-type': 'application/json',
+                                             'Authorization': 'Bearer {}'.format(access_token)})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("User successfully logged out.", str(response.data))
 
     def tearDown(self):
         """

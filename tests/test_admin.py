@@ -122,37 +122,47 @@ class AdminTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertIn('Book must have an Author', str(response.data))
 
-#     def test_update_book(self):
-#         """
-#         Tests whether a book can be updated
-#         :return:
-#         """
-#
-        # book = {"title": "BOOTCAMP26",
-        #         "description": "Wonderful a bootcamp it was",
-        #         "author": "Thosekuys",
-        #         "availability": True}
-#
-#         response = self.client.put('/api/v2/book/1', data=json.dumps(book), content_type="application/json")
-#         return self.assertEqual(response.status_code, 200)
-#
-#     def test_update_empty_book(self):
-#         """
-#         Tests whether a book can be updated
-#         :return:
-#         """
-#         book = {"title": "", "description": "", "author": ""}
-#         response = self.client.put('/api/v2/book/1', data=json.dumps(book), content_type="application/json")
-#         return self.assertEqual(response.status_code, 403)
-#
-#     def test_delete_book(self):
-#         """
-#         Tests Delete book API endpoint if book does not exist
-#         :return:
-#         """
-#         response = self.client.delete('/api/v2/book/1', content_type="application/json")
-#         self.assertEqual(response.status_code, 200)
-#
+    def test_update_book(self):
+        """
+        Tests whether a book can be updated
+        :return:
+        """
+        access_token = self.register_login_admin()
+
+        self.client.post(
+            '/api/v2/books', data=json.dumps(self.book),
+            headers={'content-type': 'application/json',
+                     'Authorization': 'Bearer {}'.format(access_token)})
+
+        book = {"title": "BOOTCAMP26",
+                "description": "Wonderful a bootcamp it was",
+                "author": "Thosekuys",
+                "availability": True}
+
+        response = self.client.put('/api/v2/book/1', data=json.dumps(book),
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)}
+                                   )
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete_book(self):
+        """
+        Tests whether a book can be updated
+        :return:
+        """
+        access_token = self.register_login_admin()
+
+        self.client.post(
+            '/api/v2/books', data=json.dumps(self.book),
+            headers={'content-type': 'application/json',
+                     'Authorization': 'Bearer {}'.format(access_token)})
+
+        response = self.client.delete('/api/v2/book/1', data=json.dumps(self.book),
+                                      headers={'content-type': 'application/json',
+                                               'Authorization': 'Bearer {}'.format(access_token)}
+                                   )
+        self.assertEqual(response.status_code, 200)
+
     def tearDown(self):
         """
         Drop all tables after tests are complete.
