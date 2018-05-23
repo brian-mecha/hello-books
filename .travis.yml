@@ -12,15 +12,16 @@ services:
   - postgresql
 
 addons:
-  postgresql: '10.3'
+  postgresql: '9.6'
 
 apt:
   packages:
-    - postgresql-server-dev-10.3
+    - postgresql-server-dev-9.6
 
 sudo: true
 
 before_script:
+  - cp config/database.yml.travis config/database.yml
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -U postgres -c "create extension postgis"
 
