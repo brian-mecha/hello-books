@@ -26,6 +26,9 @@ def create_app(config_name):
     from .user import user as user_blueprint
     app.register_blueprint(user_blueprint)
 
+    from .errors import errors as errors_blueprint
+    app.register_blueprint(errors_blueprint)
+
     app.config['SECRET_KEY'] = '\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
     app.config['BCRYPT_LOG_ROUNDS'] = 15
     app.config['JWT_SECRET_KEY'] = '\xe3\x8cw\xbdx\x0f\x9c\x91\xcf\x91\x81\xbdZ\xdc$\xedk!\xce\x19\xaa\xcb\xb7~'
@@ -41,5 +44,6 @@ def create_app(config_name):
     jwt.init_app(app)
     login_manager.init_app(app)
     login_manager.login_message = "Login is required to access this feature."
+
 
     return app

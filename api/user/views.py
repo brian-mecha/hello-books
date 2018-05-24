@@ -91,12 +91,14 @@ def login_user():
     elif not user_data["password"] or user_data["password"].isspace():
         return {"Error": "Password is missing."}, 401
 
-    user = User.get_user_by_email(user_data["email"])
+    # user = User.get_user_by_email(user_data["email"])
+    users = User.all_users()
+    user = [user for user in users if user.email == user_data["email"]]
 
-    if user is None:
-        abort(401, "User does not exist")
+    if not user:
+        return jsonify({'Error': 'User does not exist'}), 403
     if not User.check_password(user_data["password"]):
-        abort(200, "Wrong Username or Password")
+        return jsonify({'Error': 'Wrong Username or Password'}), 403
 
     access_token = create_access_token(identity=user_data["email"])
 
@@ -142,7 +144,7 @@ def logout_user():
     return response, 200
 
 
-@user.route('//api/v2/auth/reset', methods=['POST'])
+@user.route('/api/v2/auth/reset', methods=['POST'])
 def user_password_reset():
     """
     Method to reset user password
@@ -181,4 +183,5 @@ def user_password_reset():
             return {"Success": "Password reset successful."}, 200, {"jwt": access_token}
 
     except:
-        abort(401, {"Password not Reset."})
+        # abort(401, {"Password not Reset."})
+        return {"Error": "Password not Reset."}, 403
