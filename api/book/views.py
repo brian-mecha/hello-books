@@ -97,29 +97,27 @@ def return_book(book_id):
     return {"Success": "Book returned successfully."}, 200
 
 
-@book.route('/api/v2/users/books?returned=false', methods=['GET'])
-@jwt_required
-def unreturned_books_by_user():
-    unreturned = BorrowingHistory.unreturned_books_by_user()
-
-    logged_user_email = get_jwt_identity()
-    logged_user = User.get_user_by_email(logged_user_email)
-
-    if unreturned is None:
-        return {"Message": "User doesn't have unreturned Books"}, 204
-
-    return {"UNRETURNED BOOKS BY USER": [book.serialize for book in unreturned if book.user_id == logged_user.id]}, 200
-
 
 @book.route('/api/v2/users/books', methods=['GET'])
 @jwt_required
 def user_borrowing_history():
-    history = BorrowingHistory.user_borrowing_history()
-
-    if history is None:
-        return {"Message": "User doesn't have any borrowing history."}, 204
-
+    unreturned = BorrowingHistory.unreturned_books_by_user()
     logged_user_email = get_jwt_identity()
     logged_user = User.get_user_by_email(logged_user_email)
+    returned = request.args.get('returned')
 
-    return jsonify({"USER BORROWING HISTORY": [book.serialize for book in history if book.user_id == logged_user.id]}), 200
+    # get un-returned books
+    if returned == 'false':
+        if not unreturned:
+            return jsonify({'Message': 'User does not have unreturned Books'}), 404
+        else:
+            return jsonify({"UNRETURNED BOOKS BY USER": [book.serialize for book in unreturned if book.user_id == logged_user.id]}), 200
+
+    else:
+        history = BorrowingHistory.user_borrowing_history()
+
+        if history is None:
+            return {"Message": "User doesn't have any borrowing history."}, 204
+
+
+        return jsonify({"USER BORROWING HISTORY": [book.serialize for book in history if book.user_id == logged_user.id]}), 200
