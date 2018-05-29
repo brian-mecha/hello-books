@@ -18,10 +18,6 @@ omit=
     *encodings/*
     *hmac.py
     *run.py
-    *api/models.py
-    *api/routes.py
-    *api/__init.py__.py
-    *api/dataSchema.py
 
 
 

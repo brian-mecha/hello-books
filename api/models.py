@@ -5,6 +5,7 @@ Contains entities that model data in our apps.
 books = []
 users = []
 
+
 class User(object):
 
     def __init__(self, user_id, username, password, admin):
@@ -23,7 +24,7 @@ class User(object):
             'admin': self.admin
         }
 
-    def CreateUser(self):
+    def create_user(self):
         """
         Model to create a user
         :return:
@@ -46,14 +47,14 @@ class User(object):
                 return {'Message': 'User created Successfully'}
 
     @staticmethod
-    def AllUsers():
+    def all_users():
         """
         Function to get all users
         :return: users
         """
         return users
 
-    def resetPassword(id, username, password):
+    def reset_password(id, username, password):
         """
         Resets the user password
         :param username:
@@ -73,7 +74,8 @@ class User(object):
 
                 return {'Message': 'User Password Reset Failed'}
 
-    def borrowBook(book_id):
+    @staticmethod
+    def borrow_book(book_id):
         """
         Function for user to borrow a book
         :return:
@@ -88,6 +90,7 @@ class User(object):
             else:
 
                 return {'Message': 'Book Does Not Exist'}
+
 
 class Book(object):
 
@@ -104,6 +107,7 @@ class Book(object):
         self.description = description
         self.author = author
 
+    @property
     def serialize(self):
         """
         Serialize
@@ -116,8 +120,7 @@ class Book(object):
             'description': self.description
         }
 
-
-    def createBook(self):
+    def create_book(self):
         """
         Functions assigns the book object an id and appends it to the book list
         :return: Success message
@@ -151,7 +154,7 @@ class Book(object):
         return books
 
     @staticmethod
-    def deleteBook(book_id):
+    def delete_book(book_id):
         """
         Function to delete a book
         :return:
@@ -168,9 +171,10 @@ class Book(object):
                 return {'Error': 'Book Does Not Exist'}
 
     @staticmethod
-    def updateBook(book_id, data):
+    def update_book(book_id, data):
         """
         Function to delete a book
+        :param book_id:
         :param data:
         :return:
         """
@@ -186,7 +190,7 @@ class Book(object):
         return {'Error': 'Book Does Not Exist'}
 
     @staticmethod
-    def getBook(book_id):
+    def get_book(book_id):
         """
         Function to get a single book
         :return:

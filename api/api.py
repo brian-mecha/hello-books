@@ -23,6 +23,7 @@ borrowed_books = []
 
 blacklist = set()
 
+
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     """
@@ -32,6 +33,7 @@ def check_if_token_in_blacklist(decrypted_token):
     """
     jti = decrypted_token['jti']
     return jti in blacklist
+
 
 class SingleBooksApi(MethodView):
     """Method to find, get, delete and edit a book"""
@@ -43,7 +45,7 @@ class SingleBooksApi(MethodView):
         """
 
         thisbook = []
-        data = Book.getBook(book_id)
+        data = Book.get_book(book_id)
 
         if not data:
 
@@ -51,23 +53,25 @@ class SingleBooksApi(MethodView):
 
         else:
 
-            thisbook.append(data.serialize())
+            thisbook.append(data.serialize)
             response = jsonify(thisbook)
             response.status_code = 200
 
         return response
 
+    @jwt_required
     def delete(self, book_id):
         """Function to delete a book"""
-        data = Book.getBook(book_id)
+        data = Book.get_book(book_id)
 
         if not data:
             return {'Error': 'Book Does not Exist'}, 404
 
-        res = jsonify(Book.deleteBook(book_id))
+        res = jsonify(Book.delete_book(book_id))
         res.status_code = 200
         return res
 
+    @jwt_required
     def put(self, book_id):
         """
         Function to update a book
@@ -76,7 +80,7 @@ class SingleBooksApi(MethodView):
         """
         data = request.get_json(self)
 
-        book_find = Book.getBook(book_id)
+        book_find = Book.get_book(book_id)
 
         if not book_find:
             return {'Error': 'Book Does not Exist'}, 404
@@ -97,9 +101,10 @@ class SingleBooksApi(MethodView):
         elif not valid_book.data["author"] or valid_book.data["author"].isspace():
             return {'Error': 'Book must have an Author'}, 403
 
-        response = jsonify(Book.updateBook(book_id=book_id, data=data))
+        response = jsonify(Book.update_book(book_id=book_id, data=data))
         response.status_code = 200
         return response
+
 
 class BooksApi(MethodView):
     """Method to get all books and add a book"""
@@ -113,13 +118,14 @@ class BooksApi(MethodView):
         data = Book.get_all_books()
 
         for book in data:
-            allbooks.append(book.serialize())
+            allbooks.append(book.serialize)
 
         response = jsonify(allbooks)
         response.status_code = 200
 
         return response
 
+    @jwt_required
     def post(self):
         """
         Function to add a book
@@ -140,29 +146,36 @@ class BooksApi(MethodView):
 
             validate(data, schema)
 
-            valid_book = BookSchema().load(data)
-
-            if not valid_book.data["title"] or valid_book.data["title"].isspace():
-                return {'Error': 'Book must have a Title'}, 403
-
-            elif not valid_book.data["description"] or valid_book.data["description"].isspace():
-                return {'Error': 'Book must have a Description'}, 403
-
-            elif not valid_book.data["author"] or valid_book.data["author"].isspace():
-                return {'Error': 'Book must have an Author'}, 403
-
-            else:
-
-                new_book = Book(title=valid_book.data["title"],
-                                description=valid_book.data["description"],
-                                author=valid_book.data["author"])
-
-                new_book.createBook()
-
-            return jsonify({'Success': 'Book added successfully.'})
-
         except:
             return {"Error": "Missing or wrong inputs"}, 400
+
+        all_books = Book.get_all_books()
+
+        valid_book = BookSchema().load(data)
+
+        present = [book for book in all_books if book.title == valid_book.data["title"]]
+        if present:
+            return {'Error': 'Book with that title already exists.'}, 403
+
+        if not valid_book.data["title"] or valid_book.data["title"].isspace():
+            return {'Error': 'Book must have a Title'}, 403
+
+        elif not valid_book.data["description"] or valid_book.data["description"].isspace():
+            return {'Error': 'Book must have a Description'}, 403
+
+        elif not valid_book.data["author"] or valid_book.data["author"].isspace():
+            return {'Error': 'Book must have an Author'}, 403
+
+        else:
+
+            new_book = Book(title=valid_book.data["title"],
+                            description=valid_book.data["description"],
+                            author=valid_book.data["author"])
+
+            new_book.create_book()
+
+        return jsonify({'Success': 'Book added successfully.'})
+
 
 class LoginUser(MethodView):
     """Method to login user"""
@@ -190,8 +203,6 @@ class LoginUser(MethodView):
         elif not valid_user.data["password"] or valid_user.data["password"].isspace():
             return {"error": "Password is required"}, 401
 
-
-
         access_token = create_access_token(identity=valid_user.data["username"])
 
         if access_token:
@@ -216,6 +227,7 @@ class LogoutUser(MethodView):
         jti = get_raw_jwt()['jti']
         blacklist.add(jti)
         return {"msg": "Successfully logged out"}, 200
+
 
 class RegisterUser(MethodView):
     """Method to register a new user"""
@@ -253,7 +265,10 @@ class RegisterUser(MethodView):
             hashed_password = set_password(data['password'])
             access_token = create_access_token(identity=data["username"])
 
-            response = jsonify(User(username=data['username'], user_id=self, password=hashed_password, admin=data).CreateUser())
+            response = jsonify(User(username=data['username'],
+                                    user_id=self,
+                                    password=hashed_password,
+                                    admin=data).create_user())
             response.status_code = 201
             response.token = access_token
             return response
@@ -261,6 +276,7 @@ class RegisterUser(MethodView):
         except:
 
             return {"Error": "Missing or wrong inputs"}, 400
+
 
 class ResetPassword(MethodView):
     """
@@ -285,7 +301,6 @@ class ResetPassword(MethodView):
                 # users_data.remove(users_surname[0])
                 valid_user.data["password"] = set_password(userdata["password"])
 
-                # User.resetPassword(id=valid_user.data["id"], password=valid_user.data["password"], username=valid_user.data["username"])
                 users_data.append(valid_user.data)
                 access_token = create_access_token(identity=userdata["username"])
 
@@ -314,15 +329,6 @@ class BorrowBook(MethodView):
         borrowed_book["book_id"] = book_id
         return jsonify("Book Borrowed Successfuly")
 
-@jwt.expired_token_loader
-def my_expired_token_callback():
-    """
-    Generates new token
-    :return: token
-    """
-    jwt_data = get_jwt_identity()
-    access = create_access_token(identity=jwt_data)
-    return jsonify(access), 200
 
 def set_password(password):
     """
@@ -332,6 +338,7 @@ def set_password(password):
     """
     password = bcrypt.generate_password_hash(password).decode('utf-8')
     return password
+
 
 def check_password(hashed_password, password):
     """
