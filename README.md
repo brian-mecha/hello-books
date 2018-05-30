@@ -22,8 +22,8 @@ List of [dependencies](https://github.com/brian-mecha/hello-books/blob/master/re
 *Coming Soon*
 ## Running Tests
 1. cd into project folder
-2. Run '*python api_test.py*'
-##Running api endpoints
+2. Run '*pytest*'
+## Running api endpoints
 1. Run the app with '*python run.py'*
 2. Fire up Postman
 3. Test the endpoints on postman
