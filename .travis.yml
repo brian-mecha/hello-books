@@ -21,7 +21,9 @@ apt:
 sudo: true
 
 before_script:
-  - psql -c 'create database books_test_db;' -U postgres
+  - psql -c 'create role brianmoitui with createdb;'
+  - psql -c 'alter role brianmoitui with login;'
+  - psql -c 'create database books_test_db;' -U brianmoitui
 
 script:
     - py.test --cov
