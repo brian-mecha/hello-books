@@ -30,5 +30,8 @@ List of [dependencies](https://github.com/brian-mecha/hello-books/blob/master/re
 ## Github Page
 View the Github page [here](https://brian-mecha.github.io/)
 
+## Documentation
+View the documentation [here](https://hellobooks11.docs.apiary.io/)
+
 ## Project Owner
 Brian Mecha
