@@ -54,6 +54,7 @@ class User(object):
         """
         return users
 
+    @staticmethod
     def reset_password(id, username, password):
         """
         Resets the user password
@@ -90,6 +91,24 @@ class User(object):
             else:
 
                 return {'Message': 'Book Does Not Exist'}
+
+    @staticmethod
+    def get_user_by_username(username):
+        """
+        Function to get a single book
+        :return:
+        """
+
+        for user in users:
+
+            if user.username == username:
+
+                return user
+
+            else:
+
+                return {'Error': 'User Does not Exist'}
+
 
 
 class Book(object):

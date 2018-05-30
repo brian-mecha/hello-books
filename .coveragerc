@@ -20,6 +20,5 @@ omit=
     *run.py
 
 
-
 [html]
 directory = coverage_html
