@@ -21,8 +21,6 @@ apt:
 sudo: true
 
 before_script:
-  - psql -c 'create role postgres with createdb;'
-  - psql -c 'alter role postgres with login;'
   - psql -c 'create database books_test_db;' -U postgres
 
 script:

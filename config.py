@@ -21,7 +21,7 @@ class TestingConfig(Config):
     """
     TESTING = True
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://brianmoitui:mozart@localhost:5432/books_test_db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/books_test_db'
 
 
 class ProductionConfig(Config):
