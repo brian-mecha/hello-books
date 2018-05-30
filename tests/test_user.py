@@ -20,7 +20,7 @@ class UserTestCase(unittest.TestCase):
         self.user = {
             'email': 'brain@gmail.com',
             'username': 'brian',
-            'password': '111111',
+            'password': '1111112787878787',
             'is_admin': False
         }
 
@@ -31,16 +31,19 @@ class UserTestCase(unittest.TestCase):
 
     def register_login_user(self):
         # Register and login a new admin
-        self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
-                         headers={'content-type': 'application/json'})
+        reg = self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
+            headers={'content-type': 'application/json'})
+        print("rrrrrrrrrrrrrrrrrrrrrrr", reg.data)
 
         # Login a admin
         login_response = self.client.post(
             '/api/v2/auth/login', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
+        print("yyyyyyyyyyyyy", login_response.data)
+        
         # Get admin access token
         access_token = json.loads(
-            login_response.get_data().decode('utf-8'))['access_token']
+            login_response.data)['access_token']
 
         return access_token
 
@@ -95,7 +98,7 @@ class UserTestCase(unittest.TestCase):
 
     def test_register_user_with_username_as_space(self):
         """
-        Tests whether the register user registration API endpoint can pass with a Username as a
+        Tests whether the register user registration API endpoint can pass with a Username as a space
         :return:
         """
 
@@ -151,7 +154,7 @@ class UserTestCase(unittest.TestCase):
         """
         user = {"email": "not@gmail.com", "password": "wsed"}
         response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
         self.assertIn("User does not exist", str(response.data))
 
     def test_unregistered_user_logout(self):
@@ -178,7 +181,7 @@ class UserTestCase(unittest.TestCase):
         user = {"email": "", "password": "yuyyuuuu"}
         response = self.client.post('/api/v2/auth/login', data=json.dumps(user), content_type="application/json")
 
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
         self.assertIn("User does not exist", str(response.data))
 
     def test_login_no_password(self):

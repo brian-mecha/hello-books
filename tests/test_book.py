@@ -21,14 +21,14 @@ class BookTestCase(unittest.TestCase):
         self.user = {
             'email': 'brain@gmail.com',
             'username': 'brian',
-            'password': '111111',
+            'password': '1111199991',
             'is_admin': False
         }
 
         self.admin = {
             'email': 'brainAdmin@gmail.com',
             'username': 'brianAdmin',
-            'password': '111111',
+            'password': '111199911',
             'is_admin': True
         }
 

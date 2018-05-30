@@ -4,7 +4,7 @@ from flask import jsonify, request, abort, Blueprint
 from jsonschema import validate
 from flask_jwt_extended import create_access_token, get_raw_jwt, get_jwt_identity, jwt_required
 
-from api.models import User, ActiveTokens, RevokedTokens
+from api.models import User, ActiveTokens, RevokedTokens, db
 from . import user
 
 
@@ -46,6 +46,9 @@ def register_user():
 
     if data['password'].isspace():
         return {'Message': 'Password Not Provided'}, 403
+
+    if len(data['password']) < 8:
+        return {"Message": "Password should be at least 8 characters long."}
 
     valid_email = re.match(
         "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
@@ -90,6 +93,7 @@ def login_user():
 
     elif not user_data["password"] or user_data["password"].isspace():
         return {"Error": "Password is missing."}, 401
+
 
     # user = User.get_user_by_email(user_data["email"])
     users = User.all_users()
@@ -145,6 +149,7 @@ def logout_user():
 
 
 @user.route('/api/v2/auth/reset', methods=['POST'])
+@jwt_required
 def user_password_reset():
     """
     Method to reset user password
@@ -159,29 +164,29 @@ def user_password_reset():
         elif not userdata["password"] or userdata["password"].isspace():
             return {"Error": "Password is missing."}, 401
 
+        if len(userdata['password']) < 8:
+            return {'Message': 'Password should be at least 8 characters long.'}
+
         present_user = User.get_user_by_email(userdata["email"])
 
         if not present_user:
-            abort(401, "User with that email does not exist.")
+            return {'Message': "User with that email does not exist."}, 401
 
         else:
             new_password = User.set_password(password=userdata["password"])
 
-            # revoke = ActiveTokens(present_user).delete_active_token()
+            if present_user.user_password == userdata["password"]:
+                return {'Message': "No changes detected in the password"}, 401
 
-            access_token = create_access_token(identity=userdata["email"])
-
-            if present_user.check_password(new_password):
-                abort(401, "No changes detected in the password")
-
+            jti = get_raw_jwt()['jti']
+            revoke_token = RevokedTokens(jti=jti)
+            revoke_token.revoke_token()
+            ActiveTokens.find_user_with_token(userdata["email"]).delete_active_token()
+            
             present_user.user_password = new_password
-            present_user.create_user()
+            db.session.commit()
 
-            # ActiveTokens(user_email=userdata["email"],
-            #              access_token=access_token).create_active_token()
-
-            return {"Success": "Password reset successful."}, 200, {"jwt": access_token}
+            return {"Success": "Password reset successful."}, 200
 
     except:
-        # abort(401, {"Password not Reset."})
-        return {"Error": "Password not Reset."}, 403
+        return {"Error": "Password not Reset. Try again."}, 403

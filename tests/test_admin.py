@@ -19,7 +19,7 @@ class AdminTestCase(unittest.TestCase):
         self.admin = {
             'email': 'brainAdmin@gmail.com',
             'username': 'brianAdmin',
-            'password': '111111',
+            'password': '11111188888',
             'is_admin': True
         }
 
@@ -45,8 +45,7 @@ class AdminTestCase(unittest.TestCase):
             '/api/v2/auth/login', data=json.dumps(self.admin),
             headers={'content-type': 'application/json'})
         # Get admin access token
-        access_token = json.loads(
-            login_response.get_data().decode('utf-8'))['access_token']
+        access_token = json.loads(login_response.data)['access_token']
 
         return access_token
 
