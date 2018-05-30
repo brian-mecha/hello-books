@@ -33,13 +33,11 @@ class UserTestCase(unittest.TestCase):
         # Register and login a new admin
         reg = self.client.post('/api/v2/auth/register', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
-        print("rrrrrrrrrrrrrrrrrrrrrrr", reg.data)
 
         # Login a admin
         login_response = self.client.post(
             '/api/v2/auth/login', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
-        print("yyyyyyyyyyyyy", login_response.data)
         
         # Get admin access token
         access_token = json.loads(
