@@ -9,7 +9,6 @@ users = []
 class User(object):
 
     def __init__(self, user_id, username, password, admin):
-        # self.user_id = user_id
         self.user_id = len(users) + 1
         self.username = username
         self.password = password
