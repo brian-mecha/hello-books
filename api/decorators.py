@@ -5,7 +5,11 @@ from .models import get_paginated
 
 
 def allow_pagination(func):
-    """Decorator for paginating results"""
+    """
+    Decorator for paginating results
+    :param func:
+    :return:
+    """
 
     @wraps(func)
     def paginate(*args, **kwargs):
