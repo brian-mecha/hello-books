@@ -19,7 +19,7 @@ class AdminTestCase(unittest.TestCase):
         self.admin = {
             'email': 'brainAdmin@gmail.com',
             'username': 'brianAdmin',
-            'password': '11111188888',
+            'password': 'r7eee#eooM',
             'is_admin': True
         }
 

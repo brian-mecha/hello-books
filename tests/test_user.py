@@ -20,7 +20,7 @@ class UserTestCase(unittest.TestCase):
         self.user = {
             'email': 'brain@gmail.com',
             'username': 'brian',
-            'password': '1111112787878787',
+            'password': 'r7eeeeooM',
             'is_admin': False
         }
 
@@ -38,6 +38,8 @@ class UserTestCase(unittest.TestCase):
         login_response = self.client.post(
             '/api/v2/auth/login', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
+
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", reg.data)
         
         # Get admin access token
         access_token = json.loads(
