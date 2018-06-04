@@ -55,7 +55,7 @@ def run_migrations_online():
 
     """
 
-    # this callback is used to prevent an auto-migrations from being generated
+    # this callback is used to prevent an auto-migration from being generated
     # when there are no changes to the schema
     # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
     def process_revision_directives(context, revision, directives):
