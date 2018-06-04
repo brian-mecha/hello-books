@@ -39,5 +39,9 @@ View the Github page [here](https://brian-mecha.github.io/)
 ## Documentation
 View the documentation [here](https://hellobooks11.docs.apiary.io/)
 
+## More info
+ - API documentation: [Click here](https://hellobooks11.docs.apiary.io/)
+ - API on heroku: [Click here](https://mechabooks.herokuapp.com/)
+
 ## Project Owner
 Brian Mecha
