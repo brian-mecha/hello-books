@@ -13,7 +13,6 @@ jwt = JWTManager()
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=True)
     app.config.from_object(config_app['development'])
-    # app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
 
@@ -38,7 +37,6 @@ def create_app(config_name):
     @jwt.token_in_blacklist_loader
     def check_if_token_in_blacklist(decrypted_token):
         jti = decrypted_token['jti']
-
         return RevokedTokens.is_jti_blacklisted(jti)
     db.init_app(app)
     jwt.init_app(app)

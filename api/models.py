@@ -28,14 +28,6 @@ class User(db.Model):
         self.user_password = user_password
         self.is_admin = is_admin
 
-    # @property
-    # def password(self):
-    #     """
-    #     Prevent access to the password
-    #     :return:
-    #     """
-    #     raise AttributeError('Password not accessible')
-
     @staticmethod
     def set_password(password):
         """

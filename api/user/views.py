@@ -50,6 +50,10 @@ def register_user():
     if len(data['password']) < 8:
         return {"Message": "Password should be at least 8 characters long."}
 
+    if not re.match("(^(?=[a-zA-Z0-9#@$?]{8,}$)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9]).*)", data['password']):
+        return jsonify({'message': 'Password should contain at '
+                                   'least an uppercase character, lower case character and a number'}), 400
+
     valid_email = re.match(
         "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
         data["email"].strip())
@@ -66,7 +70,6 @@ def register_user():
     if users_username:
         return {"Message": "This Username is already taken."}, 200
 
-    # user = User(username=data['username'], email=data['email'])
     hashed_password = User.set_password(password=data['password'])
 
     response = jsonify(User(username=data['username'],
