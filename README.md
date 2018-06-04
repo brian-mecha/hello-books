@@ -33,8 +33,9 @@ List of [dependencies](https://github.com/brian-mecha/hello-books/blob/master/re
 1. Run the app with '*python3 run.py'*
 2. Fire up Postman
 3. Test the endpoints on postman
-## Github Page
-View the Github page [here](https://brian-mecha.github.io/)
+## More info
+ - API documentation: [Click here](https://hellobooksc3.docs.apiary.io/)
+ - API on heroku: [Click here](https://hello-booksc3.herokuapp.com/)
 
 ## Project Owner
 Brian Mecha
