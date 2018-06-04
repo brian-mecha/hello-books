@@ -1,3 +1,5 @@
+import os
+
 class Config(object):
     """
     General Config settings that are shared by all environments
@@ -5,7 +7,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     ERROR_404_HELP = False
-    SQLALCHEMY_DATABASE_URI = 'postgresql://brianmoitui:mozart@localhost:5432/hello_books'
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 class DevelopmentConfig(Config):
