@@ -3,9 +3,11 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from api.models import Book, User, BorrowingHistory, datetime, timedelta
 from . import book
+from api.decorators import allow_pagination
 
 
 @book.route('/api/v2/books', methods=['GET'])
+@allow_pagination
 def get_all_books():
     """
     Function to return all books.
@@ -16,7 +18,8 @@ def get_all_books():
     if all_books is None:
         return {'Message': 'Library is empty.'}, 204
     else:
-        return {"ALL BOOKS": [book.serialize for book in all_books]}, 200
+        response = [book.serialize for book in all_books]
+        return jsonify(response), 200
 
 
 @book.route('/api/v2/book/<int:book_id>', methods=['GET'])

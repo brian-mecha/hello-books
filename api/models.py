@@ -4,6 +4,7 @@ Contains models used in our apps.
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
+from math import ceil
 
 # Initializes Database
 db = SQLAlchemy()
@@ -224,3 +225,48 @@ class RevokedTokens(db.Model):
         if RevokedTokens.query.filter_by(jti=jti).first():
             return True
         return False
+
+
+def group(list_obj, group_len):
+    """
+    Group objects in a list into lists with length group_len
+    :param list_obj:
+    :param group_len:
+    :return:
+    """
+
+    for i in range(0, len(list_obj), group_len):
+        yield list_obj[i:i+group_len]
+
+def get_paginated(limit_param, results, url, page_param):
+    """
+    Return paginated results
+    :param limit_param:
+    :param results:
+    :param url:
+    :param page_param:
+    :return:
+    """
+
+    page = int(page_param)
+    limit = int(limit_param)
+    page_count = ceil(len(results) / limit)
+    paginated = {}
+    if page == 1:
+        paginated['previous'] = 'None'
+    else:
+        paginated['previous'] = url + '?page={}&limit={}'.format(page - 1, limit)
+
+    if page < page_count:
+        paginated['next'] = url + '?page={}&limit={}'.format(page + 1, limit)
+    elif page > page_count:
+        return False
+    else:
+        paginated['next'] = 'None'
+
+    for i, value in enumerate(group(results, limit)):
+        if i == (page - 1):
+            paginated['results'] = value
+            break
+
+    return paginated
