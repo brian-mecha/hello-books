@@ -20,7 +20,12 @@
 ## Dependencies
 List of [dependencies](https://github.com/brian-mecha/hello-books/blob/master/requirements.txt)
 ## Install Instructions
-*Coming Soon*
+ - Pre-requisites: Python 3.6
+ - Clone this repository `git clone https://github.com/brian-mecha/hello-books.git`
+ - Set up a virtual environment. `virtualenv` is recommended
+ - Install the apps dependencies by running `pip install -r requirements.txt`
+ - Open a terminal and `cd` into the cloned repository
+ - Run `python run.py
 ## Running Tests
 1. cd into project folder
 2. Run '*pytest*'
