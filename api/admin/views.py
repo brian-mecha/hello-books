@@ -29,44 +29,43 @@ def create_book():
     if admin_check:
         return admin_check
 
-    data = request.get_json()
-    try:
-        schema = {
-            "type": "object",
-            "properties": {
-                "title": {"type": "string"},
-                "description": {"type": "string"},
-                "author": {"type": "string"},
-                "availability": {"type": "boolean"}
-            },
-            "required": ["description", "title", "author"]
-        }
-        validate(data, schema)
+    title = request.data.get('title')
+    description = request.data.get('description')
+    author = request.data.get('author')
+    availability = request.data.get('availability')
 
-    except:
-        return {"Error": "Missing or wrong inputs"}, 400
+    if not title or title.isspace():
+        return jsonify({
+            'message': 'Book must have a Title'
+        }), 403
+
+    if not description or description.isspace():
+        return jsonify({
+            'message': 'Book must have a Description'
+        }), 403
+
+    if not author or author.isspace():
+        return jsonify({
+            'message': 'Book must have an Author'
+        }), 403
+
+    if availability is None:
+        return jsonify({
+            'message': 'Book must have an availability status'
+        }), 403
 
     books = Book.get_all_books()
 
-    present = [book for book in books if book.title == data["title"]]
+    present = [book for book in books if book.title == title]
     if present:
         return {'Error': 'Book with that title already exists.'}, 403
 
-    if not data["title"] or data["title"].isspace():
-        return {'Error': 'Book must have a Title'}, 403
-
-    elif not data["description"] or data["description"].isspace():
-        return {'Error': 'Book must have a Description'}, 403
-
-    elif not data["author"] or data["author"].isspace():
-        return {'Error': 'Book must have an Author'}, 403
-
     else:
 
-        new_book = Book(title=data["title"],
-                        description=data["description"],
-                        availability=data["availability"],
-                        author=data["author"])
+        new_book = Book(title=title,
+                        description=description,
+                        availability=availability,
+                        author=author)
         new_book.create_book()
 
     return jsonify({'Success': 'Book added successfully.'}), 201

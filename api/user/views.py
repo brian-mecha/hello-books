@@ -1,7 +1,6 @@
 import re
 
-from flask import jsonify, request, abort, Blueprint
-from jsonschema import validate
+from flask import jsonify, request, abort
 from flask_jwt_extended import create_access_token, get_raw_jwt, get_jwt_identity, jwt_required
 
 from api.models import User, ActiveTokens, RevokedTokens, db
@@ -14,68 +13,60 @@ def register_user():
     Registers a new user
     :return:
     """
-    data = request.get_json()
+    password = request.data.get('password')
+    username = request.data.get('username')
+    email = request.data.get('email')
+    is_admin = request.data.get('is_admin')
 
-    try:
-        schema = {
-            "type": "object",
-            "properties": {
-                "username": {"type": "string"},
-                "password": {"type": "string"},
-                "email": {"type": "string"},
-                "is_admin": {"type": "boolean"},
-            },
-            "required": ["username", "password", "email"]
-        }
+    if not password or password.isspace():
+        return jsonify({
+            'message': 'Password Not Provided'
+        }), 403
 
-        validate(data, schema)
-    except:
-        return {"Error": "Missing or wrong inputs"}, 400
+    elif not username or username.isspace():
+        return jsonify({
+            'message': 'Username Not Provided'
+        }), 403
 
-    if data is None:
-        return {'Message': 'No User Data Passed'}, 403
+    elif not email or email.isspace():
+        return jsonify({
+            'message': 'Email Not Provided'
+        }), 403
 
-    if not data['username']:
-        return {'Message': 'Username Not Provided'}, 403
+    elif is_admin is None:
+        return jsonify({
+            'message': 'User role not provided'
+        }), 403
 
-    if data['username'].isspace():
-        return {'Message': 'Username Not Provided'}, 403
+    if len(password) < 8:
+        return {"Message": "Password should be at least 8 characters long."}, 403
 
-    if not data['password']:
-        return {'Message': 'Password Not Provided'}, 403
-
-    if data['password'].isspace():
-        return {'Message': 'Password Not Provided'}, 403
-
-    if len(data['password']) < 8:
-        return {"Message": "Password should be at least 8 characters long."}
-
-    if not re.match("(^(?=[a-zA-Z0-9#@$?]{8,}$)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9]).*)", data['password']):
+    if not re.match("(^(?=[a-zA-Z0-9#@$?]{8,}$)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9]).*)", password):
         return jsonify({'message': 'Password should contain at '
-                                   'least an uppercase character, lower case character and a number'}), 400
+                                   'least an uppercase character, lower case character and a number'}), 403
 
     valid_email = re.match(
         "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
-        data["email"].strip())
+        email.strip())
 
     if valid_email is None:
-        return jsonify({'error': 'Please enter a valid Email!'}), 400
+        return jsonify({'error': 'Please enter a valid Email!'}), 403
 
     users = User.all_users()
-    users_email = [user for user in users if user.email == data["email"]]
+    users_email = [user for user in users if user.email == email]
     if users_email:
         return {"Message": "This Email already exists."}, 200
 
-    users_username = [user for user in users if user.username == data["username"]]
+    users_username = [user for user in users if user.username == username]
     if users_username:
         return {"Message": "This Username is already taken."}, 200
 
-    hashed_password = User.set_password(password=data['password'])
+    hashed_password = User.set_password(password=password)
 
-    response = jsonify(User(username=data['username'],
+    response = jsonify(User(username=username,
                             user_password=hashed_password,
-                            email=data['email'],
-                            is_admin=data['is_admin']).create_user())
+                            email=email,
+                            is_admin=is_admin).create_user())
 
     return {"Message": "User registration successful."}, 201
 
