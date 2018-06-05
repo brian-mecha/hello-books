@@ -11,8 +11,8 @@ from jsonschema import validate
 from api.models import *
 from api import app
 
-from api.dataSchema import UserSchema
-from api.dataSchema import BookSchema
+from api.data_schema import UserSchema
+from api.data_schema import BookSchema
 from api.models import User, Book
 
 bcrypt = Bcrypt(app)
