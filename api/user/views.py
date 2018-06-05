@@ -19,24 +19,16 @@ def register_user():
     is_admin = request.data.get('is_admin')
 
     if not password or password.isspace():
-        return jsonify({
-            'message': 'Password Not Provided'
-        }), 403
+        return jsonify({'message': 'Password Not Provided'}), 403
 
     elif not username or username.isspace():
-        return jsonify({
-            'message': 'Username Not Provided'
-        }), 403
+        return jsonify({'message': 'Username Not Provided'}), 403
 
     elif not email or email.isspace():
-        return jsonify({
-            'message': 'Email Not Provided'
-        }), 403
+        return jsonify({'message': 'Email Not Provided'}), 403
 
     elif is_admin is None:
-        return jsonify({
-            'message': 'User role not provided'
-        }), 403
+        return jsonify({'message': 'User role not provided'}), 403
 
     if len(password) < 8:
         return {"Message": "Password should be at least 8 characters long."}, 403
@@ -88,8 +80,6 @@ def login_user():
     elif not user_data["password"] or user_data["password"].isspace():
         return {"Error": "Password is missing."}, 401
 
-
-    # user = User.get_user_by_email(user_data["email"])
     users = User.all_users()
     user = [user for user in users if user.email == user_data["email"]]
 

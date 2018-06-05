@@ -17,11 +17,7 @@ class UserTestCase(unittest.TestCase):
 
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client()
-        self.user = {
-            'email': 'brain@gmail.com',
-            'username': 'brian',
-            'password': 'r7eeeeooM',
-            'is_admin': False
+        self.user = {'email': 'brain@gmail.com', 'username': 'brian', 'password': 'r7eeeeooM', 'is_admin': False
         }
 
         # Set app to the current context
@@ -39,8 +35,6 @@ class UserTestCase(unittest.TestCase):
             '/api/v2/auth/login', data=json.dumps(self.user),
             headers={'content-type': 'application/json'})
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", reg.data)
-        
         # Get admin access token
         access_token = json.loads(
             login_response.data)['access_token']
@@ -72,17 +66,39 @@ class UserTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("This Email already exists.", str(response.data))
 
-    def test_register_user_with_missing_info(self):
+    def test_register_user_without_email(self):
         """
-        Tests whether the register user registration API endpoint can pass Missing User Information
+        Tests whether the register user registration API endpoint can pass without email
         :return:
         """
 
         user = {"username": "sddsdd", "password": "yryrur8d"}
         response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
 
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Missing or wrong inputs", str(response.data))
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Email Not Provided", str(response.data))
+
+    def test_register_user_without_role(self):
+        """
+        Tests whether the register user registration API endpoint can pass without role
+        :return:
+        """
+        user = {"username": "sddsdd", "password": "r7eeeeooM", "email": "b@gmail.com"}
+        response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("User role not provided", str(response.data))
+
+    def test_register_user_with_invalid_email_format(self):
+        """
+        Tests whether the register user registration API endpoint can pass with invalid email format
+        :return:
+        """
+        user = {"username": "sddsdd", "password": "r7eeeeooM", "email": "bg", "is_admin": False}
+        response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Please enter a valid Email!", str(response.data))
 
     def test_register_user_without_username(self):
         """
@@ -91,18 +107,6 @@ class UserTestCase(unittest.TestCase):
         """
 
         user = {"username": "", "password": "yryrur8d"}
-        response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
-
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Missing or wrong inputs", str(response.data))
-
-    def test_register_user_with_username_as_space(self):
-        """
-        Tests whether the register user registration API endpoint can pass with a Username as a space
-        :return:
-        """
-
-        user = {"username": " ", "password": "yryrur8d", "email": "b@gmail.com", "is_admin": False}
         response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
 
         self.assertEqual(response.status_code, 403)
@@ -119,17 +123,6 @@ class UserTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertIn("Password Not Provided", str(response.data))
-
-    def test_register_user_without_password_as_space(self):
-        """
-        Tests whether the register user registration API endpoint can pass with a Password as a space
-        :return:
-        """
-
-        user = {"username": "Brian", "password": "     ", "email": "b@gmail.com", "is_admin": False}
-        response = self.client.post('/api/v2/auth/register', data=json.dumps(user), content_type="application/json")
-
-        self.assertEqual(response.status_code, 403)
 
     def user_login(self):
         """
@@ -162,11 +155,7 @@ class UserTestCase(unittest.TestCase):
         Tests whether a user can login
         :return:
         """
-        user = {
-            'email': 'brainyu@gmail.com',
-            'username': 'brianu',
-            'password': '111111',
-            'is_admin': False
+        user = {'email': 'brainyu@gmail.com', 'username': 'brianu', 'password': '111111', 'is_admin': False
         }
 
         response = self.client.post('/api/v2/auth/logout', data=json.dumps(user), content_type="application/json")
