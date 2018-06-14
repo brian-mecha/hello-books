@@ -18,7 +18,7 @@ def get_all_books():
     if all_books is None:
         return jsonify({'Message': 'Library is empty.'}), 204
     else:
-        response = [book.serialize for book in all_books]
+        response = {"ALL BOOKS": [book.serialize for book in all_books]}
         return jsonify(response), 200
 
 
