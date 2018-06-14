@@ -36,8 +36,7 @@ class UserTestCase(unittest.TestCase):
             headers={'content-type': 'application/json'})
 
         # Get admin access token
-        access_token = json.loads(
-            login_response.data)['access_token']
+        access_token = json.loads(login_response.data.decode('utf-8'))['access_token']
 
         return access_token
 
