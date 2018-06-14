@@ -47,7 +47,7 @@ class BookTestCase(unittest.TestCase):
         Tests to get all books
         :return:
         """
-        response = self.client.get('/api/v2/books', content_type="application/json")
+        response = self.client.get('/api/v2/books')
         self.assertEqual(response.status_code, 200)
 
     def test_get_a_single_book(self):
@@ -67,7 +67,7 @@ class BookTestCase(unittest.TestCase):
         """
         access_token = UserTestCase.register_login_user(self)
 
-        # Test to borrow a non-existant book
+        # Test to borrow a non-existent book
         response = self.client.post('/api/v2/users/book/1',
                                     headers={'content-type': 'application/json',
                                              'Authorization': 'Bearer {}'.format(access_token)})
