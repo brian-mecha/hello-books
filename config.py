@@ -15,6 +15,7 @@ class DevelopmentConfig(Config):
     Config settings for Development
     """
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 class TestingConfig(Config):
@@ -32,6 +33,7 @@ class ProductionConfig(Config):
     """
     DEBUG = False
     TESTING = False
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 config_app = {

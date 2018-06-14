@@ -2,7 +2,7 @@ import unittest
 import json
 
 from api import create_app, db
-from tests.test_user import UserTestCase
+from tests.test_users import UserTestCase
 from tests.test_admin import AdminTestCase
 
 

@@ -18,10 +18,10 @@ def create_app(config_name):
     from .admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint)
 
-    from .book import book as book_blueprint
+    from .books import book as book_blueprint
     app.register_blueprint(book_blueprint)
 
-    from .user import user as user_blueprint
+    from .users import user as user_blueprint
     app.register_blueprint(user_blueprint)
 
     from .errors import errors as errors_blueprint
