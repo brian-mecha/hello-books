@@ -7,7 +7,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     ERROR_404_HELP = False
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/books_test_db'
 
 
 class DevelopmentConfig(Config):
