@@ -47,7 +47,7 @@ class BookTestCase(unittest.TestCase):
         Tests to get all books
         :return:
         """
-        response = self.client.get('/api/v2/books')
+        response = self.client.get('/api/v2/books', content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_get_a_single_book(self):
