@@ -15,7 +15,7 @@ class DevelopmentConfig(Config):
     Config settings for Development
     """
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/hello_books'
 
 
 class TestingConfig(Config):
@@ -33,7 +33,7 @@ class ProductionConfig(Config):
     """
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/hello_books'
 
 
 config_app = {
