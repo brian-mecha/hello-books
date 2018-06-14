@@ -6,6 +6,7 @@ __pycache__/
 ./vscode
 .pytest_cache/
 coverage_html/
+migrations/
 
 # C extensions
 *.so
