@@ -48,7 +48,7 @@ class BookTestCase(unittest.TestCase):
         :return:
         """
         response = self.client.get('/api/v2/books', content_type="application/json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
 
     def test_get_a_single_book(self):
         """
