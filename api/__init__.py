@@ -11,7 +11,7 @@ jwt = JWTManager()
 
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=True)
-    app.config.from_object(config_app['development'])
+    app.config.from_object(config_app[config_name])
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
 
