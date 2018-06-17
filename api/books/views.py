@@ -88,7 +88,7 @@ def return_book(book_id):
         return {"Error": "Book does not exist."}, 403
 
     if book.availability is True:
-        return {"Message": "This book is not borrowed."}, 200
+        return {"Message": "This book is not borrowed."}, 403
 
     book.availability = True
     book.create_book()

@@ -92,12 +92,39 @@ class BookTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Book borrowed Successfully.", str(response.data))
 
+        # Test whether a book can be borrowed twice
+        response = self.client.post('/api/v2/users/book/1', data=json.dumps(self.book),
+                                    headers={'content-type': 'application/json',
+                                             'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("This Book is not available for borrowing.", str(response.data))
+
         # Test to test whether a logged in user can return a borrowed book
         response = self.client.put('/api/v2/users/book/1', data=json.dumps(self.book),
                                    headers={'content-type': 'application/json',
                                             'Authorization': 'Bearer {}'.format(access_token)})
         self.assertEqual(response.status_code, 200)
         self.assertIn("Book returned successfully.", str(response.data))
+
+        # Test to test whether a logged in user can return a book not borrowed
+        response = self.client.put('/api/v2/users/book/1', data=json.dumps(self.book),
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("This book is not borrowed.", str(response.data))
+
+        # Test to test whether a logged in user can return a book not borrowed
+        response = self.client.put('/api/v2/users/book/3', data=json.dumps(self.book),
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Book does not exist.", str(response.data))
+
+        #Test to view borrowing history
+        response = self.client.get('/api/v2/users/books',
+                                   headers={'content-type': 'application/json',
+                                            'Authorization': 'Bearer {}'.format(access_token)})
+        self.assertEqual(response.status_code, 200)
 
     def test_borrowing_history(self):
         access_token = UserTestCase.register_login_user(self)

@@ -20,6 +20,7 @@ omit=
     *run.py
     *api/models.py
     *api/__init__.py
+    *api/decorators.py
 
 
 
