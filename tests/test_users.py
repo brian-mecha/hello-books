@@ -182,15 +182,24 @@ class UserTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertIn("Password is missing.", str(response.data))
 
-    def user_logout(self):
+    def test_user_logout(self):
         access_token = self.register_login_user()
 
         response = self.client.post('/api/v2/auth/logout',
                                     headers={'content-type': 'application/json',
                                              'Authorization': 'Bearer {}'.format(access_token)})
 
+        self.assertEqual(response.status_code, 400)
+
+    def test_user_reset_password(self):
+        access_token = self.register_login_user()
+
+        user = {"email": "brain@gmail.com", "password": "yutuuruty891!"}
+        response = self.client.post('/api/v2/auth/reset', data=json.dumps(user),
+                                    headers={'content-type': 'application/json',
+                                             'Authorization': 'Bearer {}'.format(access_token)})
         self.assertEqual(response.status_code, 200)
-        self.assertIn("User successfully logged out.", str(response.data))
+        self.assertIn("Password reset successful.", str(response.data))
 
     def tearDown(self):
         """
