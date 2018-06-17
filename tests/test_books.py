@@ -42,13 +42,13 @@ class BookTestCase(unittest.TestCase):
         with self.app.app_context():
             db.create_all()
 
-    def test_books(self):
-        """
-        Tests to get all books
-        :return:
-        """
-        response = self.client.get('/api/v2/books', content_type="application/json")
-        self.assertEqual(response.status_code, 204)
+    # def test_books(self):
+    #     """
+    #     Tests to get all books
+    #     :return:
+    #     """
+    #     response = self.client.get('/api/v2/books', content_type="application/json")
+    #     self.assertEqual(response.status_code, 204)
 
     def test_get_a_single_book(self):
         """
