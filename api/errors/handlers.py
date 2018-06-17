@@ -36,10 +36,7 @@ def error_500(e):
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
-    RevokedTokens.is_jti_blacklisted(jti)
-    return jsonify({
-        'msg': 'Login is required to continue.'
-    }), 401
+    return RevokedTokens.is_jti_blacklisted(jti)
 
 
 @jwt.expired_token_loader
