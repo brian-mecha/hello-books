@@ -1,6 +1,7 @@
 from flask import jsonify
 
 from . import errors
+from api import jwt, RevokedTokens
 
 
 @errors.app_errorhandler(404)
@@ -30,3 +31,26 @@ def error_500(e):
 @errors.app_errorhandler(405)
 def error_500(e):
     return jsonify({"message": "The resource you are trying to access is not allowed for this requested URL."}), 500
+
+
+@jwt.token_in_blacklist_loader
+def check_if_token_in_blacklist(decrypted_token):
+    jti = decrypted_token['jti']
+    RevokedTokens.is_jti_blacklisted(jti)
+    return jsonify({
+        'msg': 'Login is required to continue.'
+    }), 401
+
+
+@jwt.expired_token_loader
+def my_expired_token_callback():
+    return jsonify({
+        'msg': 'Your session has expired. Login again to continue.'
+    }), 401
+
+
+@jwt.revoked_token_loader
+def my_expired_token_callback():
+    return jsonify({
+        'msg': 'Your session has expired. Login again to continue.'
+    }), 401

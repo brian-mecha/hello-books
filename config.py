@@ -24,7 +24,7 @@ class DevelopmentConfig(Config):
     Config settings for Development
     """
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/books_test_db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:mozart@localhost:5432/hello_books'
 
 
 class ProductionConfig(Config):
