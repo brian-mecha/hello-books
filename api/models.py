@@ -39,14 +39,16 @@ class User(db.Model):
         return str(generate_password_hash(password))
 
     @staticmethod
-    def check_password(password):
+    def check_password(password, hashed_password):
         """
         Checks whether hashed password matches the actual password
         :param password:
         :return:
         """
-        user_password = str(generate_password_hash(password))
-        return check_password_hash(user_password, password)
+        # user_password = str(generate_password_hash(password))
+        # return check_password_hash(user_password, password)
+
+        return check_password_hash(hashed_password, password)
 
     def is_administrator(self):
         return self.is_admin is True
@@ -133,7 +135,7 @@ class BorrowingHistory(db.Model):
     book_author = db.Column(db.String(60), nullable=False)
     book_description = db.Column(db.String(60), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
-    date_borrowed = db.Column(db.Date, nullable=False, default=datetime.today())
+    date_borrowed = db.Column(db.Date, nullable=False, default=datetime.now())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
     returned = db.Column(db.Boolean, default=False)
     returned_date = db.Column(db.DateTime, default=datetime.today())

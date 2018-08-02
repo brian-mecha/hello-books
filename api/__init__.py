@@ -2,6 +2,7 @@ from flask_api import FlaskAPI
 from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
 from api.models import RevokedTokens, db
+from flask_cors import CORS
 
 from config import config_app
 
@@ -11,6 +12,7 @@ jwt = JWTManager()
 
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=True)
+    CORS(app)
     app.config.from_object(config_app[config_name])
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False

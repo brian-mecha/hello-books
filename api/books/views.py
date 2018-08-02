@@ -18,7 +18,7 @@ def get_all_books():
     if not all_books:
         return jsonify({"Message": "Library is empty."}), 204
     else:
-        response = {"ALL BOOKS": [book.serialize for book in all_books]}
+        response = [book.serialize for book in all_books]
         return jsonify(response), 200
 
 
@@ -58,11 +58,15 @@ def borrow_book(book_id):
         return {"Error": "This Book is not available for borrowing."}, 403
 
     else:
-        user_id = request.json.get('id')
+        logged_user_email = get_jwt_identity()
+        logged_user = User.get_user_by_email(logged_user_email)
+        user_id = logged_user.id
         due_date = datetime.now() + timedelta(days=6)
+        date_borrowed = datetime.now()
         BorrowingHistory(user_id=user_id,
                          book_id=book_id,
                          due_date=due_date,
+                         date_borrowed=date_borrowed,
                          book_title=book_is_present.title,
                          book_author=book_is_present.author,
                          book_description=book_is_present.description).borrow_book()
@@ -85,19 +89,20 @@ def return_book(book_id):
     book = Book.get_book(book_id)
 
     if book is None:
-        return {"Error": "Book does not exist."}, 403
+        return {"message": "Book does not exist."}, 403
 
     if book.availability is True:
-        return {"Message": "This book is not borrowed."}, 403
+        return {"message": "This book is not borrowed."}, 403
 
     book.availability = True
     book.create_book()
 
     update = BorrowingHistory.get_book(book_id)
     update.returned = True
+    update.returned_date = datetime.now()
     update.borrow_book()
 
-    return {"Success": "Book returned successfully."}, 200
+    return {"message": "Book returned successfully."}, 200
 
 
 
@@ -112,9 +117,9 @@ def user_borrowing_history():
     # get un-returned books
     if returned == 'false':
         if not unreturned:
-            return jsonify({'Message': 'User does not have unreturned Books'}), 404
+            return jsonify({'Message': 'User does not have unreturned Books'}), 200
         else:
-            return jsonify({"UNRETURNED BOOKS BY USER": [book.serialize for book in unreturned if book.user_id == logged_user.id]}), 200
+            return jsonify([book.serialize for book in unreturned if book.user_id == logged_user.id]), 200
 
     else:
         history = BorrowingHistory.user_borrowing_history()
@@ -123,4 +128,4 @@ def user_borrowing_history():
             return {"Message": "User doesn't have any borrowing history."}, 204
 
 
-        return jsonify({"USER BORROWING HISTORY": [book.serialize for book in history if book.user_id == logged_user.id]}), 200
+        return jsonify([book.serialize for book in history if book.user_id == logged_user.id]), 200

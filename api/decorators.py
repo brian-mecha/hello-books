@@ -1,7 +1,8 @@
 import json
 from functools import wraps
 from flask import request, jsonify
-from .models import get_paginated
+from .models import get_paginated, User
+from flask_jwt_extended import get_jwt_identity
 
 
 def allow_pagination(func):
@@ -27,3 +28,20 @@ def allow_pagination(func):
         return func(*args, **kwargs)
 
     return paginate
+
+
+def admin_user(func):
+    """
+    Decorator for protecting admin-only endpoints
+    :param func:
+    :return:
+    """
+
+    @wraps(func)
+    def check_admin_status(*args, **kwargs):
+        current_user_email = get_jwt_identity()
+        user = User.get_user_by_email(current_user_email)
+        if not user.is_admin:
+            return jsonify(message='You are not authorized to access this resource.'), 403
+        return func(*args, **kwargs)
+    return check_admin_status

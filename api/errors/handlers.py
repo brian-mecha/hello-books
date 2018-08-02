@@ -42,12 +42,12 @@ def check_if_token_in_blacklist(decrypted_token):
 @jwt.expired_token_loader
 def my_expired_token_callback():
     return jsonify({
-        'msg': 'Your session has expired. Login again to continue.'
+        'message': 'Your session has expired. Login again to continue.'
     }), 401
 
 
 @jwt.revoked_token_loader
 def my_expired_token_callback():
     return jsonify({
-        'msg': 'Your session has expired. Login again to continue.'
+        'message': 'Your session has expired. Login again to continue.'
     }), 401

@@ -5,29 +5,28 @@ from flask_jwt_extended import get_raw_jwt, get_jwt_identity, jwt_required
 from api.models import User, Book, RevokedTokens
 from . import admin
 from api.models import db
+from api.decorators import admin_user
 
 
-def verify_token_and_if_user_is_admin():
-    jti = get_raw_jwt()['jti']
-    logged_email = get_jwt_identity()
-    logged_user = User.get_user_by_email(logged_email)
-
-    if RevokedTokens.is_jti_blacklisted(jti):
-        return jsonify({'Message': 'This User token has been blacklisted'}), 401
-    if not logged_user.is_admin:
-        return jsonify({'Message': 'You are not authorized to access this URL.'}), 401
+# def verify_token_and_if_user_is_admin():
+#     jti = get_raw_jwt()['jti']
+#     logged_email = get_jwt_identity()
+#     logged_user = User.get_user_by_email(logged_email)
+#
+#     if RevokedTokens.is_jti_blacklisted(jti):
+#         return jsonify({'message': 'This User token has been blacklisted'}), 401
+#     if not logged_user.is_admin:
+#         return jsonify({'message': 'You are not authorized to access this URL.'}), 401
 
 
 @admin.route('/api/v2/books', methods=['POST'])
 @jwt_required
+@admin_user
 def create_book():
     """
     Function to add a book
     :return:
     """
-    admin_check = verify_token_and_if_user_is_admin()
-    if admin_check:
-        return admin_check
 
     title = request.data.get('title')
     description = request.data.get('description')
@@ -37,28 +36,28 @@ def create_book():
     if not title or title.isspace():
         return jsonify({
             'message': 'Book must have a Title'
-        }), 403
+        }), 400
 
     if not description or description.isspace():
         return jsonify({
             'message': 'Book must have a Description'
-        }), 403
+        }), 400
 
     if not author or author.isspace():
         return jsonify({
             'message': 'Book must have an Author'
-        }), 403
+        }), 400
 
-    if availability is None:
-        return jsonify({
-            'message': 'Book must have an availability status'
-        }), 403
+    # if availability is None:
+    #     return jsonify({
+    #         'message': 'Book must have an availability status'
+    #     }), 400
 
     books = Book.get_all_books()
 
     present = [book for book in books if book.title == title]
     if present:
-        return {'Error': 'Book with that title already exists.'}, 403
+        return {'message': 'Book with that title already exists.'}, 400
 
     else:
 
@@ -68,17 +67,14 @@ def create_book():
                         author=author)
         new_book.create_book()
 
-    return jsonify({'Success': 'Book added successfully.'}), 201
+    return jsonify({'message': 'Book added successfully.'}), 201
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['DELETE'])
 @jwt_required
+@admin_user
 def delete_book(book_id):
     """Function to delete a book"""
-    admin_check = verify_token_and_if_user_is_admin()
-    if admin_check:
-        return admin_check
-
     data = Book.get_book(book_id)
 
     if not data:
@@ -86,21 +82,18 @@ def delete_book(book_id):
 
     jsonify(Book.delete_book(data))
 
-    return jsonify({'Success': 'Book deleted successfully.'}), 200
+    return jsonify({'message': 'Book deleted successfully.'}), 200
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['PUT'])
 @jwt_required
+@admin_user
 def edit_put(book_id):
     """
     Function to update a book
     :param book_id:
     :return:
     """
-    admin_check = verify_token_and_if_user_is_admin()
-    if admin_check:
-        return admin_check
-
     data = request.get_json()
 
     try:
