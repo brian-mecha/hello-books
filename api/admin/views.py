@@ -80,9 +80,16 @@ def delete_book(book_id):
     if not data:
         return {'Error': 'Book Does not Exist'}, 404
 
-    jsonify(Book.delete_book(data))
+    if data:
+        data.deleted = True
+        db.session.commit()
+        return jsonify({'message': 'Book deleted successfully.'}), 200
+    else:
+        return {'Error': 'Book Does not Exist'}, 404
 
-    return jsonify({'message': 'Book deleted successfully.'}), 200
+    # jsonify(Book.delete_book(data))
+
+    # return jsonify({'message': 'Book deleted successfully.'}), 200
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['PUT'])
@@ -103,9 +110,9 @@ def edit_put(book_id):
                 "title": {"type": "string"},
                 "description": {"type": "string"},
                 "author": {"type": "string"},
-                "availability": {"type": "boolean"}
+                # "availability": {"type": "boolean"}
             },
-            "required": ["description", "title", "author", "availability"]
+            "required": ["description", "title", "author"]
         }
         validate(data, schema)
 
@@ -131,14 +138,14 @@ def edit_put(book_id):
     elif not data["author"] or data["author"].isspace():
         return {'Error': 'Book must have an Author'}, 403
 
-    elif not data["availability"]:
-        return {'Error': 'Book status is not provided.'}, 403
+    # elif not data["availability"]:
+    #     return {'Error': 'Book status is not provided.'}, 403
 
     if book_find:
         book_find.title = data["title"]
         book_find.description = data["description"]
         book_find.author = data["author"]
-        book_find.availability = data["availability"]
+        # book_find.availability = data["availability"]
         db.session.commit()
 
     return jsonify({'Success': 'Book updated successfully.'}), 200

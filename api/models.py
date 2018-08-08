@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from math import ceil
+from sqlalchemy import desc
 
 # Initializes Database
 db = SQLAlchemy()
@@ -86,6 +87,7 @@ class Book(db.Model):
     description = db.Column(db.Text(), nullable=False)
     availability = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.Date, nullable=False, default=datetime.today())
+    deleted = db.Column(db.Boolean(), default=False)
 
     def create_book(self):
         db.session.add(self)
@@ -101,7 +103,7 @@ class Book(db.Model):
 
     @staticmethod
     def get_all_books():
-        return Book.query.all()
+        return Book.query.filter_by(deleted=False).order_by(desc(Book.created_at))
 
     @staticmethod
     def get_book_available_for_borrowing():
