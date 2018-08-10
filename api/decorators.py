@@ -42,6 +42,6 @@ def admin_user(func):
         current_user_email = get_jwt_identity()
         user = User.get_user_by_email(current_user_email)
         if not user.is_admin:
-            return jsonify(message='You are not authorized to access this resource.'), 403
+            return jsonify(message='You are not authorized to access this resource.'), 401
         return func(*args, **kwargs)
     return check_admin_status

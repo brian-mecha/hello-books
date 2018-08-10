@@ -85,13 +85,18 @@ def login_user():
     if not user:
         return jsonify({'message': 'User does not exist'}), 400
 
+    if user.is_administrator():
+        isAdmin = True
+    else:
+        isAdmin = False
+
     if not check_password_hash(user.user_password, user_data["password"]):
         return jsonify ({'message': "Wrong Email or Password"}), 400
 
     access_token = create_access_token(identity=user_data["email"])
 
     if access_token:
-        response = {"message": "You logged in successfully.", "access_token": access_token}
+        response = {"message": "You logged in successfully.", "access_token": access_token, "isAdmin": isAdmin}
 
         return response, 200, {"access_token": access_token}
     else:

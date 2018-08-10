@@ -117,26 +117,26 @@ def edit_put(book_id):
         validate(data, schema)
 
     except:
-        return {"Error": "Missing or wrong inputs"}, 400
+        return {"message": "Missing or wrong inputs"}, 400
 
     book_find = Book.get_book(book_id)
 
     if not book_find:
-        return {'Error': 'Book Does not Exist'}, 404
+        return {'message': 'Book Does not Exist'}, 404
 
     if data is None:
-        response = jsonify({"Message": "No Book Update Information Passed"})
+        response = jsonify({"message": "No Book Update Information Passed"})
         response.status_code = 400
         return response
 
     if not data["title"] or data["title"].isspace():
-        return {'Error': 'Book must have a Title'}, 403
+        return {'message': 'Book must have a Title'}, 403
 
     elif data["description"].isspace() or not data["description"]:
-        return {'Error': 'Book must have a Description'}, 403
+        return {'message': 'Book must have a Description'}, 403
 
     elif not data["author"] or data["author"].isspace():
-        return {'Error': 'Book must have an Author'}, 403
+        return {'message': 'Book must have an Author'}, 403
 
     # elif not data["availability"]:
     #     return {'Error': 'Book status is not provided.'}, 403
@@ -148,4 +148,4 @@ def edit_put(book_id):
         # book_find.availability = data["availability"]
         db.session.commit()
 
-    return jsonify({'Success': 'Book updated successfully.'}), 200
+    return jsonify({'message': 'Book updated successfully.'}), 200

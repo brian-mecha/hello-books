@@ -135,7 +135,7 @@ class BorrowingHistory(db.Model):
     book_id = db.Column(db.Integer, db.ForeignKey('books.book_id'), nullable=False, default=1)
     book_title = db.Column(db.String(60), nullable=False)
     book_author = db.Column(db.String(60), nullable=False)
-    book_description = db.Column(db.String(60), nullable=False)
+    book_description = db.Column(db.Text(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, default=1)
     date_borrowed = db.Column(db.Date, nullable=False, default=datetime.now())
     due_date = db.Column(db.Date, nullable=False, default=datetime.today())
