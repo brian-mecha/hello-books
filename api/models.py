@@ -106,6 +106,10 @@ class Book(db.Model):
         return Book.query.filter_by(deleted=False).order_by(desc(Book.created_at))
 
     @staticmethod
+    def all_books():
+        return Book.query.all()
+
+    @staticmethod
     def get_book_available_for_borrowing():
         return Book.query.filter_by(availability=True).all()
 

@@ -53,7 +53,7 @@ def create_book():
     #         'message': 'Book must have an availability status'
     #     }), 400
 
-    books = Book.get_all_books()
+    books = Book.all_books()
 
     present = [book for book in books if book.title == title]
     if present:
@@ -86,10 +86,6 @@ def delete_book(book_id):
         return jsonify({'message': 'Book deleted successfully.'}), 200
     else:
         return {'Error': 'Book Does not Exist'}, 404
-
-    # jsonify(Book.delete_book(data))
-
-    # return jsonify({'message': 'Book deleted successfully.'}), 200
 
 
 @admin.route('/api/v2/book/<int:book_id>', methods=['PUT'])
