@@ -66,6 +66,6 @@ rjsmin==1.0.12
 six==1.11.0
 SQLAlchemy==1.2.7
 urllib3==1.22
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 whitenoise==3.3.1
 wrapt==1.10.11
