@@ -21,7 +21,7 @@ djmail==0.11.0
 Flask==0.12.2
 Flask-API==1.0
 Flask-Bcrypt==0.7.1
-Flask-Cors==3.0.6
+Flask-Cors==3.0.9
 Flask-Gunicorn==0.1.1
 Flask-JWT-Extended==3.7.2
 Flask-Login==0.4.1
